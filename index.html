@@ -308,7 +308,7 @@ function upd(dt){t+=dt;labTick(dt);if(m===2&&ME[mi].dtl&&Math.random()<.12)F.pus
  E=E.filter(e=>{if(e.hp<=0){onKill(e);if(e.big)sh(6);sfx.pop();for(let i=0;i<8;i++)F.push({k:'pt',x:e.x,y:e.y,vx:(Math.random()-.5)*120,vy:(Math.random()-.5)*120,life:.5,c:'#e33'});return false}return true});
  if(P.swT>0)P.swT-=dt;if(P.odrw>0)P.odrw-=dt;for(const f of F.slice()){f.life-=dt;if(f.k.startsWith('vn_'))vnTick(f,dt);if(f.k.startsWith('mg_'))mgTick(f,dt);if(f.k==='tor')torUpd(f,dt);if(f.k==='kw_run')kwRun(f,dt);if(f.k==='kw_whl')kwWhl(f,dt);if(f.k==='sabst')sabUpd(f,dt);if(f.k==='sgr')sgrUpd(f,dt);if(f.k==='sgrift')sgriftUpd(f,dt);if(f.k==='shk')shkUpd(f,dt);if(f.k==='hk')hkUpd(f,dt);if(f.k==='bsw'||f.k==='brd'||f.k==='bfz'||f.k==='bpr'||f.k==='bjt')bisTick(f,dt);if(f.life<=0&&f.fn){const fn=f.fn;f.fn=null;fn(f)}if(f.gr)f.vy+=f.gr*dt;if(f.k==='proj'&&f.hm){const hn=nearestTo(f.x,f.y,300);if(hn){const sp=Math.hypot(f.vx,f.vy)||1,dx=hn.x-f.x,dy=hn.y-f.y,q=Math.hypot(dx,dy)||1,kk=Math.min(1,dt*7);f.vx+=(dx/q*sp-f.vx)*kk;f.vy+=(dy/q*sp-f.vy)*kk}}if(f.k==='proj'&&f.smk&&Math.random()<.9)F.push({k:'smk_p',x:f.x+(Math.random()-.5)*4,y:f.y+(Math.random()-.5)*4,vx:(Math.random()-.5)*14,vy:-6-Math.random()*8,r:f.s*(.7+Math.random()*.6),life:.45,l0:.45,c:Math.random()<.5?'#b8bcc8':'#e4e6ee'});if(f.k==='proj'||f.k==='pt'||f.k==='smk_p'){f.x+=f.vx*dt;f.y+=f.vy*dt}if(f.wa){f.age+=dt;const sp=Math.hypot(f.vx,f.vy)||1,o2=Math.sin(f.age*f.wf+f.ph)*f.wa*Math.min(1,f.age*4);f.x+=-f.vy/sp*(o2-f.off);f.y+=f.vx/sp*(o2-f.off);f.off=o2}if(f.k==='proj'&&f.snk){f.hist=f.hist||[];f.hist.unshift([f.x,f.y]);if(f.hist.length>18)f.hist.pop()}if(f.k==='proj'&&(f.yoru||f.saber||f.bvert)){const lx=f.lx===undefined?f.x-f.vx*dt:f.lx,ly=f.ly===undefined?f.y-f.vy*dt:f.ly;F.push({k:'trench',x1:lx,y1:ly,x2:f.x,y2:f.y,life:2.2,mx:2.2,red:f.saber||f.bvert});f.lx=f.x;f.ly=f.y;if(f.saber){if(Math.random()<.8)F.push({k:'pt',x:f.x-f.vx*.03+(Math.random()-.5)*16,y:f.y-f.vy*.03+(Math.random()-.5)*16,vx:-f.vx*.1+(Math.random()-.5)*40,vy:(Math.random()-.5)*40-20,life:.45,l0:.45,c:Math.random()<.5?'#ff3a2a':'#ffd23a',sz:Math.random()<.4?3:2});f.bk=(f.bk||0)-dt;if(f.bk<=0){f.bk=.07;const ba=Math.random()*6.28,bd=14+Math.random()*22;bolt(f.x,f.y,f.x+Math.cos(ba)*bd,f.y+Math.sin(ba)*bd*.8,'#ff2a2a')}}f.ft=(f.ft||0)-dt;if(f.ft<=0){f.ft=.05;const ya=Math.atan2(f.vy,f.vx);F.push({k:'crack',x:f.x,y:f.y,a:ya+(Math.random()<.5?1:-1)*(.8+Math.random()*.8),l:8+Math.random()*18,life:.8});debris(f.x,f.y,2);if(Math.random()<.3)sfx.thud(false);sh(1.5)}}if(f.k==='proj'&&f.tr)F.push({k:'pt',x:f.x,y:f.y,vx:(Math.random()-.5)*20,vy:-10-Math.random()*20,life:f.wa?.5:.3,l0:f.wa?.5:.3,c:f.c,fire:f.c==='#ff7a1a',sz:f.s>5?3:2});if(f.k==='meteor'){const k=Math.max(0,f.life/f.mx),yy=f.y-k*(f.h||100);for(let i=0;i<(f.z>12?3:1);i++)F.push({k:'pt',x:f.x+(Math.random()-.5)*(f.z||8),y:yy,vx:(Math.random()-.5)*20,vy:-15,life:.35,l0:.35,c:'#ff7a1a',fire:1,sz:f.z>12?4:3})}
  if(f.k==='grass'){for(const e of E)if(Math.hypot(e.x-f.x,(e.y-f.y)*1.4)<f.r)e.burn=Math.max(e.burn,1.2);if(Math.random()<.35)F.push({k:'pt',x:f.x+(Math.random()-.5)*f.r*1.6,y:f.y+(Math.random()-.5)*f.r,vx:0,vy:-30,life:.5,c:'#ff7a1a',fire:1,l0:.5})}if(f.k==='ring')f.r=Math.min(f.mx,f.r+dt*130);if(f.k==='ic_fl'){f.r=Math.min(f.R,f.r+dt*f.R/.22);if(f.fz&&f.r>=f.R*.85)for(const e of E)if(Math.hypot(e.x-f.x,(e.y-f.y)*1.4)<f.R)e.frz=Math.max(e.frz,.3)}
-  if(f.k==='proj')for(const e of E)if(!f.done&&!(f.hs&&f.hs.has(e))&&Math.hypot(e.x-f.x,e.y-f.y)<8+f.s){const q=Math.hypot(f.vx,f.vy);if(f.pierce){f.hs=f.hs||new Set();f.hs.add(e)}else{f.done=1;f.life=0;if(f.fn){const fn=f.fn;f.fn=null;fn(f)}}hit(e,f.dmg,f.f,{x:f.vx/q,y:f.vy/q},f.ho);if(f.ex&&!f.pierce)boomAt(f.x,f.y,f.ex,f.dmg*.6,f.f,f.c)}}
+  if(f.k==='proj')for(const e of E)if(!f.done&&!(f.hs&&f.hs.has(e))&&Math.hypot(e.x-f.x,e.y-f.y)<8+f.s){const q=Math.hypot(f.vx,f.vy);if(f.pierce){f.hs=f.hs||new Set();f.hs.add(e)}else{f.done=1;f.life=0;if(f.fn){const fn=f.fn;f.fn=null;fn(f)}}if(f.gh)burst(f.x,f.y,[f.c||'#fff','#fff'],10,90,12);else{hit(e,f.dmg,f.f,{x:f.vx/q,y:f.vy/q},f.ho);if(f.ex&&!f.pierce)boomAt(f.x,f.y,f.ex,f.dmg*.6,f.f,f.c)}}}
  F=F.filter(f=>f.life>0)}
 const R=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,w,h)};
 const LPC=(x,y,a,len)=>F.push({k:'lpclaw',x,y,a,len,life:.3,mx:.3}),LPS=(x,y,r,d)=>F.push({k:'lpspot',x,y,r,life:.55,mx:.55,ph:Math.random()*6.28,n:Math.max(8,r/5|0)});
@@ -3679,6 +3679,7 @@ function drawMP(k,x,y){
 function loop(n){requestAnimationFrame(loop);const dt=Math.min(.05,(n-last)/1000);last=n;try{if(hs>0)hs-=dt;else if(!gameOver&&!paused)upd(dt)}catch(err){console.error('upd',err)}try{camUpd(dt)}catch(err){console.error('cam',err)}try{draw()}catch(err){try{g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over'}catch(_){}console.error('draw',err)}try{btns()}catch(err){console.error('btns',err)}}
 
 /* ===== ONLINE (WebSocket relay) v3 ===== */
+const netZ=()=>DG.on?'d'+DG.k:P.lab?'lab':P.sky?'sky':'w';
 const NET={ws:null,url:'',name:'',id:null,peers:{},v:0,lastC:0,say:'',sayT:0,defUrl:''};
 try{const off=localStorage.getItem('pfbOff')==='1',hs2=/^https?:$/.test(location.protocol)?(location.protocol==='https:'?'wss://':'ws://')+location.host:'';NET.defUrl=hs2;NET.url=new URLSearchParams(location.search).get('server')||localStorage.getItem('pfbSrv')||(off?'':hs2);NET.name=localStorage.getItem('pfbName')||''}catch(e){}
 function netSave(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -3708,20 +3709,26 @@ if(NET.url&&!NET.name)setTimeout(()=>{if(!NET.name)netPanel(true,'Tên nhân v�
 /* --- dáng vẻ + trạng thái gửi cho người khác --- */
 function netApp(){return{md:m,si:si,fi:fi,mi:mi,eq:eqOn,hk:HKon?1:0,fa:LAB.fa|0,s2:(LAB.s2&&LAB.s2on)?1:0,lf:P.lf>0?1:0,dlf:P.dlf>0?1:0,vf:P.vf>0?1:0,bt:P.boat?1:0,iw:P.inW?1:0,fh:Math.max(0,Math.round(P.fh||0)),jz:Math.max(0,Math.round(P.jz||0)),lift:Math.max(0,Math.round(P.lift||0))}}
 function netConnect(){if(NET.ws){const o=NET.ws;NET.ws=null;try{o.close()}catch(e){}}NET.peers={};NETG.list.length=0;$('net').classList.remove('on');netMenu();if(!NET.url)return;try{const w=new WebSocket(NET.url);NET.ws=w;
- w.onopen=()=>{$('net').classList.add('on');NET.v=0;toast('🌐 Đã vào server online');netSend({t:'hi',n:NET.name||'Hải tặc'});setTimeout(()=>{if(NET.ws===w&&NET.v<3)toast('⚠ Server chưa cập nhật: hãy tải server.js mới lên GitHub')},3500)};
+ w.onopen=()=>{$('net').classList.add('on');NET.v=0;toast('🌐 Đã vào server online');netSend({t:'hi',n:NET.name||'Hải tặc'});if(SVTAB.length)netSend({t:'mtab',a:SVTAB});NET.svBad=0;setTimeout(()=>{if(NET.ws===w&&NET.v<5)toast('⚠ Server chưa cập nhật: hãy tải server.js mới lên GitHub')},3500)};
  w.onmessage=ev=>{let d;try{d=JSON.parse(ev.data)}catch(e){return}
-  if(d.t==='v')NET.v=d.v;
-  else if(d.t==='p'){const q=NET.peers[d.id]||(NET.peers[d.id]={x:d.x,y:d.y});q.tx=d.x;q.ty=d.y;q.n=d.n;q.lv=d.lv;q.hp=d.hp;q.f=d.f;q.sky=d.sky;q.lab=d.lab;q.ap=d;q.seen=performance.now()}
+  if(d.t==='v'){NET.v=d.v;NET.id=d.id}
+  else if(d.t==='ping')netSend({t:'pong',ts:d.ts});else if(d.t==='fix'){if(P&&!P.lab&&!DG.on){P.x=d.x;P.y=d.y}}else if(d.t==='deny'){}
+  else if(d.t==='mn')NET.svBad=d.n!==SVTAB.length;else if(d.t==='ms')netMs(d);else if(d.t==='md')netMd(d);else if(d.t==='mh'){if(!P.lab&&!DG.on)hurt(+d.d||0)}
+  else if(d.t==='p'){const q=NET.peers[d.id]||(NET.peers[d.id]={x:d.x,y:d.y});q.tx=d.x;q.ty=d.y;q.n=d.n;q.lv=d.lv;q.hp=d.hp;q.f=d.f;q.sky=d.sky;q.lab=d.lab;q.z=d.z;q.ap=d;q.seen=performance.now()}
   else if(d.t==='e')netEnemies(d);else if(d.t==='k')netKilled(d);
   else if(d.t==='a'){if(!netCast(d))netAtkFx(d)}
   else if(d.t==='bye')delete NET.peers[d.id];
+  else if(d.t==='cs'){if(!CHS){if(!(t-_lvEl<10))return;CHS={t:Math.max(0,Math.min(2,d.tier|0)),open:0,born:t-Math.min(5,+d.age||0),ot:-999,sk:null};toast('🏝 Rương báu đã nổi lên giữa vực xoáy!')}else if(!CHS.open&&t-CHS.born<10)CHS.t=Math.max(0,Math.min(2,d.tier|0))}
+  else if(d.t==='lv'){if(!(levBusy||LEVA||CHS)&&!P.lab&&!DG.on){_lvNet=1;HS=[1,1,1];try{summonLev()}finally{_lvNet=0}}}
+  else if(d.t==='co'){if(CHS&&!CHS.open){CHS.open=1;CHS.ot=t;toast('📦 Có người đã mở rương trước bạn')}}
   else if(d.t==='c'){netLog(d.n,d.s);const q=NET.peers[d.id];if(q){q.say=d.s;q.sayT=performance.now()+5000}}};
  w.onclose=()=>{if(NET.ws!==w)return;NET.ws=null;NET.peers={};$('net').classList.remove('on');if(NET.url)setTimeout(netConnect,4000)};w.onerror=()=>{}}catch(e){}}
-setInterval(()=>{if(!NET.ws||!P)return;netSend(Object.assign({t:'p',x:P.x|0,y:P.y|0,f:P.f,lv:LV,hp:Math.max(0,Math.min(100,Math.round(P.hp/mhp()*100))),sky:P.sky?1:0,lab:(P.lab||DG.on)?1:0},netApp()))},100);
+setInterval(()=>{if(!NET.ws||!P)return;netSend(Object.assign({t:'p',x:P.x|0,y:P.y|0,f:P.f,lv:LV,hp:Math.max(0,Math.min(100,Math.round(P.hp/mhp()*100))),sky:P.sky?1:0,lab:(P.lab||DG.on)?1:0,z:netZ()},netApp()))},100);
 /* --- vẽ người chơi khác bằng đúng bộ vẽ nhân vật của game --- */
 const NETG={on:0,list:[]};let NETSV=null;
 function netCtx(q,a){a=a||q.ap||{};const ix=(arr,i)=>Number.isInteger(i)&&i>=0&&i<arr.length?i:0;
- const c={P:{x:q.x,y:q.y,f:q.f<0?-1:1,inv:0,hp:100,mp:99999,lf:a.lf?1:0,dlf:a.dlf?1:0,vf:a.vf?1:0,boat:a.bt?1:0,inW:a.iw?1:0,fh:a.fh||0,jz:a.jz||0,lift:a.lift||0,sky:q.sky?1:0,lockT:0,dash:0,swT:0},
+ const pp=q.pp||(q.pp={});Object.assign(pp,{x:q.x,y:q.y,f:q.f<0?-1:1,inv:0,hp:100,mp:99999,lf:a.lf?1:0,dlf:a.dlf?1:0,vf:a.vf?1:0,boat:a.bt?1:0,inW:a.iw?1:0,fh:a.fh||0,jz:a.jz||0,lift:a.lift||0,sky:q.sky?1:0});
+ const c={P:pp,
   md:(a.md===0||a.md===1||a.md===2)?a.md:0,si:ix(SW,a.si),fi:ix(FR,a.fi),mi:ix(ME,a.mi),eq:(Number.isInteger(a.eq)&&a.eq>=0&&EQ[a.eq])?a.eq:-1,hk:a.hk?1:0,aim:{x:1,y:0},q};
  c.LABo=Object.assign({},LAB,{fa:a.fa|0,f1:0,s2:a.s2?1:0,s2on:a.s2?1:0});return c}
 function netGS(c){if(NETSV){if(NETSV.c===c)return;netGR()}
@@ -3729,26 +3736,28 @@ function netGS(c){if(NETSV){if(NETSV.c===c)return;netGR()}
  NETSV={c,P,m,si,fi,mi,eqOn,HKon,LAB,E,ch,holdOn,aim};P=c.P;m=c.md;si=c.si;fi=c.fi;mi=c.mi;eqOn=c.eq;HKon=c.hk;LAB=c.LABo;ch=null;holdOn=false;aim=c.aim||aim}
 function netGR(){const s=NETSV;if(!s)return;NETSV=null;P=s.P;m=s.m;si=s.si;fi=s.fi;mi=s.mi;eqOn=s.eqOn;HKon=s.HKon;LAB=s.LAB;E=s.E;ch=s.ch;holdOn=s.holdOn;aim=s.aim}
 /* --- chạy chiêu của người khác trên máy mình (chỉ hiệu ứng, không gây sát thương) --- */
-const NETBAD=/^(vn_|mg_|kw_run$|kw_whl$|tor$|sabst$|sgr$|sgrift$|shk$|hk$|bsw$|brd$|bfz$|bpr$|bjt$|grass$|ic_fl$)/,NETNOTAG=/^(pt|dmg|star|txt|timer)$/;
+const NETBAD=/^(grass$|ic_fl$)/,NETNOTAG=/^(pt|dmg|star|txt|timer)$/;
 function netWith(c,fn){if(NETG.on)return fn();
  const sv={cd,cdx,gcd,gcdM,cmbN,cmbT,cxT,hs,shake,flashA,flashC},op=Array.prototype.push;
  NETG.on=1;
  try{netGR();netGS(c);E=[];cd={};cdx={};gcd=0;gcdM=-1;
-  Array.prototype.push=function(){if(this!==F)return op.apply(this,arguments);const a=[];for(let i=0;i<arguments.length;i++){const o=arguments[i];if(o&&typeof o==='object'&&typeof o.k==='string'){if(NETBAD.test(o.k))continue;if(!NETNOTAG.test(o.k))o._g=c;if(typeof o.fn==='function')o.fn=netWrap(c,o.fn);if(o.k==='proj'){o.done=1;o.dmg=0}}op.call(a,o)}return op.apply(this,a)};
+  Array.prototype.push=function(){if(this!==F)return op.apply(this,arguments);const a=[];for(let i=0;i<arguments.length;i++){const o=arguments[i];if(o&&typeof o==='object'&&typeof o.k==='string'){if(NETBAD.test(o.k))continue;if(!NETNOTAG.test(o.k))o._g=c;if(typeof o.fn==='function')o.fn=netWrap(c,o.fn);if(o.k==='proj'){o.dmg=0;o.gh=1}}op.call(a,o)}return op.apply(this,a)};
   return fn()}
  catch(e){return undefined}
  finally{Array.prototype.push=op;netGR();cd=sv.cd;cdx=sv.cdx;gcd=sv.gcd;gcdM=sv.gcdM;cmbN=sv.cmbN;cmbT=sv.cmbT;cxT=sv.cxT;hs=sv.hs;shake=sv.shake;flashA=sv.flashA;flashC=sv.flashC;NETG.on=0}}
 function netWrap(c,fn){return a=>{if(c.q&&!c.P.zg){c.P.x=c.q.x;c.P.y=c.q.y;c.P.f=c.q.f<0?-1:1}return netWith(c,()=>fn(a))}}
-function netCast(d){const q=NET.peers[d.id];if(!q||q.lab||!!q.sky!==!!P.sky||P.lab||DG.on)return true;q.ap=d;
- if(Math.hypot(q.x-P.x,q.y-P.y)>650)return true;
+function netCast(d){const q=NET.peers[d.id];if(!q||q.z!==netZ())return true;q.ap=d;
+ q.x=d.x;q.y=d.y;if(Math.hypot(d.x-P.x,d.y-P.y)>1000)return true;
  try{const c=netCtx(q,d),n0=F.length;c.P.x=q.x;c.P.y=q.y;c.P.f=d.f<0?-1:1;const ang=+d.ang||0;c.aim={x:Math.cos(ang),y:Math.sin(ang)};c.until=t+2.5;
   netWith(c,()=>{if(d.rel){ch={i:d.i|0,t:+d.pw||1,src:'tap',pid:0};release()}else _netUse(d.i|0,'net')});
   if(F.length===n0&&!c.P.zg)return false;
   NETG.list.push(c);if(NETG.list.length>12)NETG.list.shift();return true}catch(e){return false}}
 function netGhostTick(dt){const L=NETG.list;for(let i=L.length-1;i>=0;i--){const c=L[i];if(t>c.until+3){c.P.zg=null}if(t>c.until&&!c.P.zg){L.splice(i,1);continue}if(c.P.zg){const z=c.P.zg;netWith(c,()=>zigStep(dt))}}}
-const _netUpd=upd;upd=function(dt){netGR();_netUpd(dt);if(NET.ws){try{netGhostTick(dt)}catch(e){}}};
+['vnTick','mgTick','torUpd','kwRun','kwWhl','sabUpd','sgrUpd','sgriftUpd','shkUpd','hkUpd','bisTick'].forEach(n=>{const o=window[n];if(typeof o!=='function')return;window[n]=function(f){if(f&&f._g&&!NETG.on){const c=f._g,a=arguments;return netWith(c,()=>o.apply(null,a))}return o.apply(this,arguments)}});
+function netAnimTick(dt){for(const id in NET.peers){const p=NET.peers[id].pp;if(!p)continue;if(p.swT>0)p.swT-=dt;if(p.odrw>0)p.odrw-=dt;if(p.lockT>0)p.lockT-=dt;if(p.cmt>0)p.cmt-=dt}}
+const _netUpd=upd;upd=function(dt){netGR();svPre();_netUpd(dt);svPost(dt);{const q=E.find(x=>x.ty===8);if(q)lvCredit(q)}if(NET.ws){try{netAnimTick(dt);netGhostTick(dt)}catch(e){}}};
 const _netDraw=draw;draw=function(){netGR();try{return _netDraw()}finally{netGR()}};
-function netDrawList(){if(!NET.ws||P.lab||DG.on)return[];const now=performance.now(),a=[];for(const id in NET.peers){const q=NET.peers[id];if(now-q.seen>5000){delete NET.peers[id];continue}q.x+=(q.tx-q.x)*.3;q.y+=(q.ty-q.y)*.3;if(q.lab||!!q.sky!==!!P.sky)continue;if(q.x<camX-30||q.x>camX+W+30||q.y<camY-40||q.y>camY+H+30)continue;a.push({y:q.y,d:()=>drawPeer(q)})}
+function netDrawList(){if(!NET.ws)return[];const now=performance.now(),a=[];for(const id in NET.peers){const q=NET.peers[id];if(now-q.seen>5000){delete NET.peers[id];continue}q.x+=(q.tx-q.x)*.3;q.y+=(q.ty-q.y)*.3;if(q.z!==netZ())continue;if(q.x<camX-30||q.x>camX+W+30||q.y<camY-40||q.y>camY+H+30)continue;a.push({y:q.y,d:()=>drawPeer(q)})}
  if(NET.say&&now<NET.sayT)a.push({y:P.y+2,d:()=>netBubble(P.x|0,(P.y-(P.lift||0)-(P.fh||0))|0,NET.say)});return a}
 function netBubble(x,y,s){s=s.length>34?s.slice(0,33)+'…':s;g.font='bold 7px monospace';const w=g.measureText(s).width;g.globalAlpha=.85;R(x-w/2-3,y-38,w+6,10,'#fff');g.globalAlpha=1;tx(s,x-w/2,y-30,'#000')}
 function drawPeerBasic(q){const x=q.x|0,y=q.y|0;R(x-5,y+7,10,2,'rgba(0,0,0,.3)');R(x-3,y+2,3,5,'#2a3a6a');R(x+1,y+2,3,5,'#2a3a6a');R(x-4,y-4,8,7,'#e8553a');R(x-4,y-9,8,5,'#d9a77a');R(x-5,y-11,10,3,'#f2d27a');R(x-6,y-9,12,1,'#f2d27a');R(q.f<0?x-3:x+1,y-7,2,2,'#000')}
@@ -3758,17 +3767,44 @@ function drawPeer(q){const x=q.x|0;let ok=false;try{const c=netCtx(q);netGS(c);t
  if(q.say&&performance.now()<q.sayT)netBubble(x,y,q.say)}
 
 /* ===== CHƠI CHUNG: quái dùng chung máu, chết là cùng nhận thưởng ===== */
-const nk=e=>(e.ty|0)+'_'+(e.hx|0)+'_'+(e.hy|0),nOK=e=>!e.dg&&!e.rf&&e.hx!==undefined;
-function netEnemies(m){if(!NET.ws||P.lab||DG.on||!Array.isArray(m.a))return;const mp={};for(const e of E)if(nOK(e))mp[nk(e)]=e;
+const nk=e=>(e.dg?'d'+DG.k+'w'+DG.w+'_':'')+(e.ty|0)+'_'+(e.hx|0)+'_'+(e.hy|0),nOK=e=>e.sv==null&&e.hx!==undefined&&!e.rf&&(DG.on?!!e.dg:!e.dg);
+function netEnemies(m){if(!NET.ws||!Array.isArray(m.a))return;const mp={};for(const e of E)if(nOK(e))mp[nk(e)]=e;
  for(const a of m.a){const e=mp[a[0]];if(!e||e.hp<=0||Math.hypot(e.x-P.x,e.y-P.y)>700)continue;const hp=+a[3];
-  if(hp<e.hp){F.push({k:'dmg',x:e.x,y:e.y-10,v:Math.round(e.hp-hp),life:.7,c:'#9cf'});e.hp=hp;e.flash=.1;e.al=Math.max(e.al,6)}
+  if(hp<e.hp){lvCredit(e);F.push({k:'dmg',x:e.x,y:e.y-10,v:Math.round(e.hp-hp),life:.7,c:'#9cf'});e.hp=hp;e._lh=hp;e.flash=.1;e.al=Math.max(e.al,6)}
   if(Math.hypot(a[1]-m.px,a[2]-m.py)<Math.hypot(a[1]-P.x,a[2]-P.y)){e.x+=(a[1]-e.x)*.5;e.y+=(a[2]-e.y)*.5}}}
-function netKilled(m){if(!NET.ws||P.lab||DG.on)return;for(const e of E)if(nOK(e)&&e.hp>0&&nk(e)===m.k&&Math.hypot(e.x-P.x,e.y-P.y)<700){e.hp=0;e.flash=.1;break}}
-setInterval(()=>{if(!NET.ws||!P||P.lab||DG.on||gameOver)return;const a=[];for(const e of E){if(a.length>=14)break;if(nOK(e)&&Math.hypot(e.x-P.x,e.y-P.y)<450&&(e.al>0||e.hp<e.mx))a.push([nk(e),e.x|0,e.y|0,Math.round(e.hp),Math.round(e.mx)])}if(a.length)netSend({t:'e',a,px:P.x|0,py:P.y|0})},100);
-const _netOK=onKill;onKill=function(e){if(NET.ws&&nOK(e))netSend({t:'k',k:nk(e),px:P.x|0,py:P.y|0});return _netOK(e)};
-let _na=0;const _netUse=use;use=function(i,src){const k=m*16+(i|0),pre=cd[k]||0,r=_netUse(i,src);if(NET.ws&&!NETG.on&&(cd[k]||0)>pre+.001){const n=performance.now();if(n-_na>100){_na=n;netSend(Object.assign({t:'a',i:i|0,ang:Math.atan2(aim.y,aim.x),x:P.x|0,y:P.y|0,f:P.f},netApp()))}}return r};
+function netKilled(m){if(!NET.ws)return;for(const e of E)if(nOK(e)&&e.hp>0&&nk(e)===m.k&&(e.ty===8||Math.hypot(e.x-P.x,e.y-P.y)<700)){e.hp=0;e._lh=0;e.flash=.1;break}}
+setInterval(()=>{if(!NET.ws||!P||gameOver)return;const a=[];for(const e of E){if(a.length>=14)break;if(nOK(e)&&Math.hypot(e.x-P.x,e.y-P.y)<450&&(e.al>0||e.hp<e.mx))a.push([nk(e),e.x|0,e.y|0,Math.round(e.hp),Math.round(e.mx)])}if(a.length)netSend({t:'e',a,px:P.x|0,py:P.y|0})},100);
+const _netOK=onKill;onKill=function(e){
+ if(e.sv!=null){if(!e.srv&&svOn()){netSend({t:'dmg',i:e.sv,d:Math.max(1,e._sh|0)});e._sh=0;e.hp=1;SVQ.push(e);return}
+  if(e.srv){if(e.noRew)return;const r=_netOK(e);for(let i=RS.length-1;i>=0;i--)if(RS[i].ty===(e.ty|0)&&RS[i].x===e.hx&&RS[i].y===e.hy)RS.splice(i,1);return r}}
+ if(NET.ws&&nOK(e))netSend({t:'k',k:nk(e),px:P.x|0,py:P.y|0});return _netOK(e)};
+let _na=0;const _netUse=use;use=function(i,src){const k=m*16+(i|0),pre=cd[k]||0,r=_netUse(i,src);if(NET.ws&&!NETG.on&&(cd[k]||0)>pre+.001){const n=performance.now();if(n-_na>35){_na=n;netSend(Object.assign({t:'a',i:i|0,ang:Math.atan2(aim.y,aim.x),x:P.x|0,y:P.y|0,f:P.f},netApp()))}}return r};
 const _netRel=release;release=function(){const c=ch,k=m*16+(c?c.i:0),pre=cd[k]||0,r=_netRel.apply(this,arguments);if(c&&NET.ws&&!NETG.on&&(cd[k]||0)>pre+.001)netSend(Object.assign({t:'a',i:c.i|0,rel:1,pw:Math.min(3,c.t||0),ang:Math.atan2(aim.y,aim.x),x:P.x|0,y:P.y|0,f:P.f},netApp()));return r};
-function netAtkFx(m){const q=NET.peers[m.id];if(!q||q.lab||!!q.sky!==!!P.sky)return;F.push({k:'eslash',x:q.x,y:q.y,a:+m.ang||0,life:.2});F.push({k:'ring',x:q.x,y:q.y,r:3,mx:18+((m.i|0)===9?0:10),c:'#ffd23a',life:.25})}
+function netAtkFx(m){const q=NET.peers[m.id];if(!q||q.z!==netZ())return;F.push({k:'eslash',x:q.x,y:q.y,a:+m.ang||0,life:.2});F.push({k:'ring',x:q.x,y:q.y,r:3,mx:18+((m.i|0)===9?0:10),c:'#ffd23a',life:.25})}
+/* ===== QUÁI THƯỜNG TẤT CẢ ĐẢO do SERVER điều khiển (vị trí, máu, đánh người, hồi sinh) ===== */
+let SVT=-99;const SVQ=[],SVTAB=[],SVSP=new Set([3,8,15,16,18,22,23,25,26,28]);
+const svOn=()=>NET.ws&&!NET.svBad&&performance.now()-SVT<2500;
+function netTag(){const fresh=!SVTAB.length;let k=0;for(const e of E){if(e.dg||e.rf||e.hx===undefined||SVSP.has(e.ty|0))continue;e.sv=k;e._sh=e.hp;if(fresh)SVTAB.push([e.hx|0,e.hy|0,e.ty|0,e.big?1:0,e.lv|0,e.hy>=SKY0?1:0]);k++}}
+const _iE=initE;initE=function(){_iE();netTag()};try{netTag()}catch(e){}
+function netMs(m){SVT=performance.now();if(P.lab||DG.on||NET.svBad||!Array.isArray(m.a))return;const seen={},mp={};for(const e of E)if(e.sv!=null)mp[e.sv]=e;
+ for(const a of m.a){const k=a[0]|0,tb=SVTAB[k];if(!tb)continue;seen[k]=1;
+  let e=mp[k]||E.find(q=>q.sv==null&&q.hx===tb[0]&&q.hy===tb[1]&&q.ty===tb[2]&&q.hp>0);
+  if(!e){e=mk(tb[3],tb[0],tb[1],tb[2],tb[4]);E.push(e)}
+  e.sv=k;e.hp=e._sh=a[3];e.mx=a[4];e._tx=a[1];e._ty=a[2];if(e.hp<e.mx)e.al=Math.max(e.al,2)}
+ for(const e of E)if(e.sv!=null&&!seen[e.sv]&&e.hp>0&&Math.hypot(e.x-P.x,e.y-P.y)<450){e.srv=1;e.noRew=1;e.hp=0}}
+function netMd(m){const e=E.find(q=>q.sv===m.i&&q.hp>0);if(!e)return;e.srv=1;if(!(m.by||[]).includes(NET.id))e.noRew=1;e.hp=0;e.flash=.1}
+function svPre(){if(!svOn())return;for(const e of E)if(e.sv!=null)e.stun=Math.max(e.stun,.5)}
+function svPost(dt){while(SVQ.length)E.push(SVQ.pop());if(!svOn())return;
+ for(const e of E){if(e.sv==null)continue;e.stun=0;if(e._tx!=null&&e.hp>0){const k=Math.min(1,dt*12);e.x+=(e._tx-e.x)*k;e.y+=(e._ty-e.y)*k}
+  if(e.hp>0&&e.hp<e._sh){netSend({t:'dmg',i:e.sv,d:e._sh-e.hp});e._sh=e.hp}}}
+let _lvNet=0,_lvEl=-99;
+/* Levi: chỉ người ở gần + đã gây sát thương mới nhận thưởng */
+function lvCredit(e){if(e.ty!==8)return;const hp=Math.max(0,e.hp);if(e._lh==null)e._lh=hp;if(hp<e._lh)e._ld=(e._ld||0)+e._lh-hp;e._lh=hp}
+const _lvD=levDie;levDie=function(e){lvCredit(e);if(!NET.ws||(e._ld>=e.mx*.01&&Math.hypot(P.x-e.x,P.y-e.y)<700&&!P.lab)){_lvEl=t;return _lvD(e)}
+LEVA=0;levBusy=0;HS=[0,0,0];sflash(.3,'#fff');banner('★ LEVIATHAN ĐÃ BỊ HẠ ★','Bạn ở xa hoặc chưa gây sát thương nên không nhận thưởng');saveGame()};
+const _sLv=summonLev;summonLev=function(){const ok=!(levBusy||LEVA||CHS);_sLv();if(ok&&levBusy&&!_lvNet)netSend({t:'lv'})};
+const _spC=spawnChest;spawnChest=function(){const had=CHS;_spC();if(!had&&CHS)netSend({t:'cs',tier:CHS.t})};
+const _opC=openChest;openChest=function(){const was=CHS&&CHS.open;_opC();if(!was&&CHS&&CHS.open)netSend({t:'co'})};
 netConnect();
 setInterval(saveGame,5000);requestAnimationFrame(loop);
 </script></body></html>
