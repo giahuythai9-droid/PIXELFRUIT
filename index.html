@@ -3681,21 +3681,33 @@ const NET={ws:null,url:'',name:'',id:null,peers:{}};
 try{const off=localStorage.getItem('pfbOff')==='1',hs=/^https?:$/.test(location.protocol)?(location.protocol==='https:'?'wss://':'ws://')+location.host:'';NET.url=new URLSearchParams(location.search).get('server')||localStorage.getItem('pfbSrv')||(off?'':hs);NET.name=localStorage.getItem('pfbName')||'';if(NET.url&&!NET.name)setTimeout(()=>{const n=prompt('Tên nhân vật online:','');NET.name=(n||'Hải tặc').slice(0,14);try{localStorage.setItem('pfbName',NET.name)}catch(e){}netSend({t:'hi',n:NET.name})},1500)}catch(e){}
 function netSend(o){if(NET.ws&&NET.ws.readyState===1)NET.ws.send(JSON.stringify(o))}
 function netConnect(){if(NET.ws){const o=NET.ws;NET.ws=null;try{o.close()}catch(e){}}NET.peers={};$('net').classList.remove('on');if(!NET.url)return;try{const w=new WebSocket(NET.url);NET.ws=w;
- w.onopen=()=>{$('net').classList.add('on');toast('🌐 Đã vào server online');netSend({t:'hi',n:NET.name||'Hải tặc'})};
+ w.onopen=()=>{$('net').classList.add('on');NET.v=0;toast('🌐 Đã vào server online');netSend({t:'hi',n:NET.name||'Hải tặc'});setTimeout(()=>{if(NET.ws===w&&!NET.v)toast('⚠ Server chưa cập nhật: hãy tải server.js mới lên GitHub')},3500)};
  w.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
-  if(m.t==='p'){const q=NET.peers[m.id]||(NET.peers[m.id]={x:m.x,y:m.y});q.tx=m.x;q.ty=m.y;q.n=m.n;q.lv=m.lv;q.f=m.f;q.sky=m.sky;q.lab=m.lab;q.seen=performance.now()}
-  else if(m.t==='bye')delete NET.peers[m.id];else if(m.t==='c')toast('💬 '+m.n+': '+m.s)};
+  if(m.t==='v')NET.v=m.v;else if(m.t==='p'){const q=NET.peers[m.id]||(NET.peers[m.id]={x:m.x,y:m.y});q.tx=m.x;q.ty=m.y;q.n=m.n;q.lv=m.lv;q.hp=m.hp;q.f=m.f;q.sky=m.sky;q.lab=m.lab;q.seen=performance.now()}
+  else if(m.t==='e')netEnemies(m);else if(m.t==='k')netKilled(m);else if(m.t==='a')netAtkFx(m);else if(m.t==='bye')delete NET.peers[m.id];else if(m.t==='c')toast('💬 '+m.n+': '+m.s)};
  w.onclose=()=>{if(NET.ws!==w)return;NET.ws=null;NET.peers={};$('net').classList.remove('on');if(NET.url)setTimeout(netConnect,4000)};w.onerror=()=>{}}catch(e){}}
-setInterval(()=>{if(!NET.ws||!P)return;netSend({t:'p',x:P.x|0,y:P.y|0,f:P.f,lv:LV,sky:P.sky?1:0,lab:(P.lab||DG.on)?1:0})},100);
+setInterval(()=>{if(!NET.ws||!P)return;netSend({t:'p',x:P.x|0,y:P.y|0,f:P.f,lv:LV,hp:Math.max(0,Math.min(100,Math.round(P.hp/mhp()*100))),sky:P.sky?1:0,lab:(P.lab||DG.on)?1:0})},100);
 function netDrawList(){if(!NET.ws||P.lab||DG.on)return[];const now=performance.now(),a=[];for(const id in NET.peers){const q=NET.peers[id];if(now-q.seen>5000){delete NET.peers[id];continue}q.x+=(q.tx-q.x)*.3;q.y+=(q.ty-q.y)*.3;if(q.lab||!!q.sky!==!!P.sky)continue;if(q.x<camX-30||q.x>camX+W+30||q.y<camY-40||q.y>camY+H+30)continue;a.push({y:q.y,d:()=>drawPeer(q)})}return a}
 function drawPeer(q){const x=q.x|0,y=q.y|0,st=Math.round(Math.sin(t*8+x))&&(Math.abs(q.tx-q.x)>.5);R(x-5,y+7,10,2,'rgba(0,0,0,.3)');R(x-3,y+2,3,5,'#2a3a6a');R(x+1,y+2,3,5,'#2a3a6a');R(x-4,y-4,8,7,'#e8553a');R(x-4,y-9,8,5,'#d9a77a');R(x-5,y-11,10,3,'#f2d27a');R(x-6,y-9,12,1,'#f2d27a');R(q.f<0?x-3:x+1,y-7,2,2,'#000');
- g.font='bold 7px monospace';const s='Lv.'+q.lv+' '+(q.n||'');const w=g.measureText(s).width;g.globalAlpha=.55;R(x-w/2-2,y-23,w+4,9,'#000');g.globalAlpha=1;tx(s,x-w/2,y-16,'#7fff7f')}
+ g.font='bold 7px monospace';const s='Lv.'+q.lv+' '+(q.n||'');const w=g.measureText(s).width;g.globalAlpha=.55;R(x-w/2-2,y-23,w+4,9,'#000');g.globalAlpha=1;tx(s,x-w/2,y-16,'#7fff7f');R(x-10,y-13,20,2,'#000');R(x-10,y-13,20*Math.max(0,Math.min(1,(q.hp==null?100:q.hp)/100)),2,'#e33')}
 $('net').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();
  const c=prompt('🌐 ONLINE\n• Gõ tin nhắn để chat (khi đã kết nối)\n• Gõ  /server  để đổi địa chỉ server\n• Gõ  /ten  để đổi tên\n• Gõ  /off  để tắt online',NET.ws?'':'/server');if(!c)return;
  if(c==='/server'){const u=prompt('Địa chỉ server (ví dụ wss://ten-server.onrender.com):',NET.url);if(u!==null){NET.url=u.trim();try{localStorage.setItem('pfbSrv',NET.url);localStorage.removeItem('pfbOff')}catch(e){}if(!NET.name){const n=prompt('Tên nhân vật:','');if(n){NET.name=n.slice(0,14);try{localStorage.setItem('pfbName',NET.name)}catch(e){}}}netConnect()}}
  else if(c==='/ten'){const n=prompt('Tên nhân vật:',NET.name);if(n){NET.name=n.slice(0,14);try{localStorage.setItem('pfbName',NET.name)}catch(e){}netSend({t:'hi',n:NET.name})}}
  else if(c==='/off'){NET.url='';try{localStorage.removeItem('pfbSrv');localStorage.setItem('pfbOff','1')}catch(e){}netConnect();toast('Đã tắt online')}
  else if(NET.ws){netSend({t:'c',s:c.slice(0,80)});toast('💬 Bạn: '+c.slice(0,80))}else toast('Chưa kết nối server')});
+
+/* ===== CHƠI CHUNG: quái dùng chung máu, chết là cùng nhận thưởng ===== */
+const nk=e=>(e.ty|0)+'_'+(e.hx|0)+'_'+(e.hy|0),nOK=e=>!e.dg&&!e.rf&&e.hx!==undefined;
+function netEnemies(m){if(!NET.ws||P.lab||DG.on||!Array.isArray(m.a))return;const mp={};for(const e of E)if(nOK(e))mp[nk(e)]=e;
+ for(const a of m.a){const e=mp[a[0]];if(!e||e.hp<=0||Math.hypot(e.x-P.x,e.y-P.y)>700)continue;const hp=+a[3];
+  if(hp<e.hp){F.push({k:'dmg',x:e.x,y:e.y-10,v:Math.round(e.hp-hp),life:.7,c:'#9cf'});e.hp=hp;e.flash=.1;e.al=Math.max(e.al,6)}
+  if(Math.hypot(a[1]-m.px,a[2]-m.py)<Math.hypot(a[1]-P.x,a[2]-P.y)){e.x+=(a[1]-e.x)*.5;e.y+=(a[2]-e.y)*.5}}}
+function netKilled(m){if(!NET.ws||P.lab||DG.on)return;for(const e of E)if(nOK(e)&&e.hp>0&&nk(e)===m.k&&Math.hypot(e.x-P.x,e.y-P.y)<700){e.hp=0;e.flash=.1;break}}
+setInterval(()=>{if(!NET.ws||!P||P.lab||DG.on||gameOver)return;const a=[];for(const e of E){if(a.length>=14)break;if(nOK(e)&&Math.hypot(e.x-P.x,e.y-P.y)<450&&(e.al>0||e.hp<e.mx))a.push([nk(e),e.x|0,e.y|0,Math.round(e.hp),Math.round(e.mx)])}if(a.length)netSend({t:'e',a,px:P.x|0,py:P.y|0})},100);
+const _netOK=onKill;onKill=function(e){if(NET.ws&&nOK(e))netSend({t:'k',k:nk(e),px:P.x|0,py:P.y|0});return _netOK(e)};
+let _na=0;const _netUse=use;use=function(i,src){const n=performance.now();if(NET.ws&&n-_na>150){_na=n;netSend({t:'a',i:i|0,ang:Math.atan2(aim.y,aim.x)})}return _netUse(i,src)};
+function netAtkFx(m){const q=NET.peers[m.id];if(!q||q.lab||!!q.sky!==!!P.sky)return;F.push({k:'eslash',x:q.x,y:q.y,a:+m.ang||0,life:.2});F.push({k:'ring',x:q.x,y:q.y,r:3,mx:18+((m.i|0)===9?0:10),c:'#ffd23a',life:.25})}
 netConnect();
 setInterval(saveGame,5000);requestAnimationFrame(loop);
 </script></body></html>
