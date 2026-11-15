@@ -48,11 +48,15 @@ function setTab(a){if(MB.length||!Array.isArray(a)||a.length>500)return;
   const [hp,dm]=mst(ty,big,lv);return{i,hx:x,hy:y,x,y,ty,big,lv,hp,mx:hp,dm,z:r[5]?'sky':'w',cl:CLAI.has(ty)?1:0,far:0,cd:0,al:0,ret:0,wu:0,ld:0,lt:3,dead:0,rs:0,rt:CLAI.has(ty)?120:ty===2?90:ty===1?15:big?65:15,dd:new Map()}}).filter(Boolean)}
 let tk=0;
 setInterval(()=>{if(!MB.length&&!Object.keys(DB).length)return;const dt=.05,ps=[];wss.clients.forEach(c=>{if(c.readyState===1&&(c.z==='w'||c.z==='sky')&&c.px!=null)ps.push(c)});
+ for(const ty in DB){const b=DB[ty],D=DYN[ty];if(b.x==null){b.x=D.x;b.y=D.y}
+  let H=b.host&&ps.includes(b.host)&&Math.hypot(b.host.px-b.x,b.host.py-b.y)<1800?b.host:null;
+  if(!H){let bd=1800;for(const c of ps){const d=Math.hypot(c.px-b.x,c.py-b.y);if(d<bd){bd=d;H=c}}}b.host=H}
  for(const m of MB){
-  if(m.dead){m.rs-=dt;if(m.rs<=0){m.dead=0;m.hp=m.mx;m.x=m.hx;m.y=m.hy;m.dd.clear();m.al=0;m.ret=0;m.wu=0;m.ld=0;m.far=0}continue}
+  if(m.dead){m.rs-=dt;if(m.rs<=0){m.dead=0;m.hp=m.mx;m.x=m.hx;m.y=m.hy;m.dd.clear();m.al=0;m.ret=0;m.wu=0;m.ld=0;m.far=0;m.host=null}continue}
   let T=null,td=1e9;for(const c of ps){if(c.z!==m.z)continue;const d=Math.hypot(c.px-m.x,c.py-m.y);if(d<td){td=d;T=c}}
   if(m.cl){ // boss AI chạy ở client: server chỉ giữ máu. Không ai ở gần 10 giây thì hồi đầy
-   if(td>1600){m.far+=dt;if(m.far>10){m.hp=m.mx;m.dd.clear();m.far=0}}else m.far=0;continue}
+   let H=m.host&&ps.includes(m.host)&&m.host.z===m.z&&Math.hypot(m.host.px-m.x,m.host.py-m.y)<1600?m.host:null;if(!H&&T&&td<1600)H=T;m.host=H;
+   if(td>1600){m.far+=dt;if(m.far>10){m.hp=m.mx;m.dd.clear();m.far=0;m.x=m.hx;m.y=m.hy;m.host=null}}else m.far=0;continue}
   if(td>900){m.x=m.hx;m.y=m.hy;m.hp=m.mx;m.al=0;m.ret=0;m.dd.clear();continue}
   m.al-=dt;m.cd-=dt;
   const hd=Math.hypot(m.x-m.hx,m.y-m.hy);if(hd>=(m.big?230:170)){m.ret=1;m.al=0}else if(hd<6)m.ret=0;
@@ -62,7 +66,7 @@ setInterval(()=>{if(!MB.length&&!Object.keys(DB).length)return;const dt=.05,ps=[
   if(m.big){m.lt-=dt;if(m.wu>0){m.wu-=dt;if(m.wu<=0){m.ld=.35;m.lx=dx/d;m.ly=dy/d}}else if(m.ld>0){m.ld-=dt;m.x+=m.lx*230*dt;m.y+=m.ly*230*dt}else{m.x+=dx/d*26*dt;m.y+=dy/d*26*dt;if(m.lt<=0&&d<200){m.lt=4+Math.random()*2;m.wu=.6}}}
   else{m.x+=dx/d*30*dt;m.y+=dy/d*30*dt}
   if(d<(m.big?22:14)&&m.cd<=0){m.cd=m.big?1:.8;T.send(JSON.stringify({t:'mh',i:m.i,d:m.big&&m.ld>0?m.dm*1.5:m.dm}))}}
- if(ps.length&&(++tk%2===0))for(const c of ps){const a=[];for(const m of MB)if(!m.dead&&m.z===c.z&&Math.abs(m.x-c.px)<(m.cl?1600:700)&&Math.abs(m.y-c.py)<(m.cl?1600:700))a.push([m.i,m.x|0,m.y|0,Math.ceil(m.hp),m.mx]);const bd={};for(const ty in DB)bd[ty]=[Math.ceil(DB[ty].hp),DB[ty].mx];c.send(JSON.stringify({t:'ms',a,bd}))}
+ if(ps.length&&(++tk%2===0))for(const c of ps){const a=[];for(const m of MB)if(!m.dead&&m.z===c.z&&Math.abs(m.x-c.px)<(m.cl?1600:700)&&Math.abs(m.y-c.py)<(m.cl?1600:700))a.push([m.i,m.x|0,m.y|0,Math.ceil(m.hp),m.mx,m.cl&&m.host?m.host.id:0]);const bd={};for(const ty in DB)bd[ty]=[Math.ceil(DB[ty].hp),DB[ty].mx,DB[ty].host?DB[ty].host.id:0,DB[ty].x|0,DB[ty].y|0];c.send(JSON.stringify({t:'ms',a,bd}))}
 },50);
 // ===== Trạng thái người chơi do SERVER giữ =====
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -135,6 +139,9 @@ wss.on('connection',ws=>{
       if(m.rel){ws.st.lastSkill=t;ws.st.slot[i]=t}
       // vị trí phát chiêu = vị trí server đang giữ (không tin x,y client gửi kèm)
       out(Object.assign({t:'a',id:ws.id,i,ang:clamp(+m.ang||0,-7,7),x:ws.st.x,y:ws.st.y,f:m.f<0?-1:1,rel:m.rel?1:0,pw:clamp(+m.pw||0,0,3),ts:t},app(m)),ws,ws.z)}
+    else if(m.t==='bp'){if(t-(ws.lastBP||0)<50)return;ws.lastBP=t;
+      if(Array.isArray(m.a))for(const r of m.a.slice(0,8)){const mb=MB[r[0]|0];if(!mb||!mb.cl||mb.dead||mb.host!==ws)continue;const x=num(r[1]),y=num(r[2]);if(Math.hypot(x-mb.hx,y-mb.hy)>2500)continue;mb.x=x;mb.y=y}
+      if(Array.isArray(m.d))for(const r of m.d.slice(0,3)){const ty=r[0]|0,b=DB[ty];if(!b||b.host!==ws)continue;const x=num(r[1]),y=num(r[2]);if(Math.hypot(x-DYN[ty].x,y-DYN[ty].y)>4000)continue;b.x=x;b.y=y}}
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;

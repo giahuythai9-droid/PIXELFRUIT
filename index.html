@@ -3790,22 +3790,34 @@ function netMs(m){SVT=performance.now();try{netDynSync(m)}catch(e){}if(P.lab||DG
  for(const a of m.a){const k=a[0]|0,tb=SVTAB[k];if(!tb)continue;seen[k]=1;
   let e=mp[k]||E.find(q=>q.sv==null&&q.hx===tb[0]&&q.hy===tb[1]&&q.ty===tb[2]&&q.hp>0);
   if(!e){e=mk(tb[3],tb[0],tb[1],tb[2],tb[4]);E.push(e)}
-  e.sv=k;e.hp=e._sh=a[3];e.mx=a[4];e._tx=a[1];e._ty=a[2];if(e.hp<e.mx)e.al=Math.max(e.al,2)}
+  e.sv=k;e.hp=e._sh=a[3];e.mx=a[4];e._tx=a[1];e._ty=a[2];{const h=a[5]|0;e._hid=h;e._host=h?(h===NET.id?1:0):undefined}if(tb[4]>0&&e.lv!==tb[4])e.lv=tb[4];if(e.hp<e.mx)e.al=Math.max(e.al,2)}
  for(const e of E)if(e.sv!=null&&e.sv<9000&&!seen[e.sv]&&e.hp>0&&Math.hypot(e.x-P.x,e.y-P.y)<450){e.srv=1;e.noRew=1;e.hp=0}}
 function netMd(m){const e=E.find(q=>q.sv===m.i&&q.hp>0);if(!e)return;e.srv=1;if(!(m.by||[]).includes(NET.id))e.noRew=1;e.hp=0;e.flash=.1}
 function svPre(){if(!svOn())return;for(const e of E)if(e.sv!=null&&!CLAI.has(e.ty|0))e.stun=Math.max(e.stun,.5)}
 function svPost(dt){while(SVQ.length)E.push(SVQ.pop());if(!svOn())return;
- for(const e of E){if(e.sv==null)continue;if(!CLAI.has(e.ty|0)){e.stun=0;if(e._tx!=null&&e.hp>0){const k=Math.min(1,dt*12);e.x+=(e._tx-e.x)*k;e.y+=(e._ty-e.y)*k}}
-  if(e.hp>0&&e.hp<e._sh){netSend({t:'dmg',i:e.sv,d:e._sh-e.hp});e._sh=e.hp}}}
+ for(const e of E){if(e.sv==null)continue;if(!CLAI.has(e.ty|0)){e.stun=0;if(e._tx!=null&&e.hp>0){const k=Math.min(1,dt*12);e.x+=(e._tx-e.x)*k;e.y+=(e._ty-e.y)*k}}else if(e._host===0&&e._tx!=null&&e.hp>0&&!(e.sumT>0)&&e.ty!==8){const k=Math.min(1,dt*8);e.x+=(e._tx-e.x)*k;e.y+=(e._ty-e.y)*k}
+  if(e.hp>0&&e.hp<e._sh){netSend({t:'dmg',i:e.sv,d:e._sh-e.hp});e._sh=e.hp}}
+ bpSend()}
+/* host boss: người được server chọn gửi vị trí boss để mọi người thấy boss cùng 1 chỗ */
+let _bpT=0;function bpSend(){const n=performance.now();if(!NET.ws||n-_bpT<100)return;_bpT=n;const a=[],d=[];for(const e of E){if(e.sv==null||e._host!==1||e.hp<=0||!CLAI.has(e.ty|0))continue;if(e.sv<9000)a.push([e.sv,e.x|0,e.y|0]);else if(e.ty!==8)d.push([e.ty|0,e.x|0,e.y|0])}if(a.length||d.length)netSend({t:'bp',a,d})}
 /* ===== BOSS TRIỆU HỒI DÙNG CHUNG (Leviathan / Shank / Crocodile): máu + cái chết do server giữ ===== */
 function netDynTag(){if(!NET.ws||NET.svBad)return;for(const e of E){const id=BDYN[e.ty|0];if(id&&e.sv==null&&!e.dg&&!e.srv&&e.hp>0){e.sv=id;e._sh=e.hp}}}
 function netDynSync(m){if(NET.svBad||P.lab||DG.on)return;netDynTag();
  for(const ty in BDYN){const e=E.find(q=>q.ty==ty&&q.sv===BDYN[ty]&&q.hp>0&&!q.srv&&!q.dg);if(!e)continue;const r=m.bd&&m.bd[ty];
-  if(r){e.hp=e._sh=r[0];e.mx=r[1];e._stale=0;if(e.hp<e.mx)e.al=Math.max(e.al,2)}
+  if(r){e.hp=e._sh=r[0];e.mx=r[1];e._stale=0;{const h=r[2]|0;e._hid=h;e._host=h?(h===NET.id?1:0):undefined}if(r[3]!=null){e._tx=r[3];e._ty=r[4]}if(e.hp<e.mx)e.al=Math.max(e.al,2)}
   else if(!(e.sumT>0)&&((e._stale=(e._stale||0)+1)>30)){e._gone=1;e.srv=1;e.noRew=1;e.hp=0}}}
 function netBossSpawn(ty){if(P.lab||DG.on||E.some(q=>q.ty===ty&&q.hp>0&&!q.dg))return;
  if(ty===3){if(altBusy)return;const e=mk(0,AX,AY,3);e.sumT=.8;E.push(e);sflash(.4,'#f22');sh(10);sfx.boom(80);banner('⚔ SHANK TÓC ĐỎ XUẤT HIỆN ⚔','Có người vừa triệu hồi — cùng nhau hạ hắn!')}
  else if(ty===16){if(crocBusy)return;const e=mk(1,CAX,CAY,16,600);e.sumT=1;E.push(e);sflash(.4,SC3);sh(10);sfx.boom(80);banner('🐊 CROCODILE XUẤT HIỆN 🐊','Có người vừa triệu hồi — cùng nhau hạ hắn!')}}
+
+/* ===== ĐÒN ĐÁNH BOSS ĐỒNG BỘ: máy không phải host chạy AI boss nhắm vào host (cùng hướng/cùng thời điểm với host); sát thương vẫn tính theo vị trí THẬT của mình ===== */
+let _bpx=null,_bpR=null;const BPX={x:0,y:0,f:1,hp:100,mp:99999,inv:0,dash:0,dx:0,dy:0,sky:0,fh:0,jt:0,jz:0,jh:0,lockT:0,lift:0,lf:0,dlf:0,vf:0};
+{const _hh=hurt;hurt=function(n){if(!_bpx)return _hh(n);const e=_bpx,px=P;P=_bpR;try{return Math.hypot(P.x-e.x,P.y-e.y)<110?_hh(n):0}finally{P=px}}}
+['shankAI','enelAI','akainuAI','garpAI','goaAI','crocAI'].forEach(n=>{const o=window[n];if(typeof o!=='function')return;window[n]=function(e,dt){
+ const q=e&&e._host===0&&!_bpx&&NET.ws?NET.peers[e._hid]:null;
+ if(!q||q.z!==netZ()||P.lab||DG.on||NETG.on||q.x==null)return o.apply(this,arguments);
+ BPX.x=q.x;BPX.y=q.y;BPX.f=q.f<0?-1:1;BPX.sky=q.sky?1:0;BPX.inv=0;BPX.lockT=0;
+ _bpR=P;_bpx=e;P=BPX;try{return o.apply(this,arguments)}finally{P=_bpR;_bpx=null;_bpR=null}}});
 function netDynGone(e){// boss chết nhưng mình không đủ sát thương / boss đã biến mất: dọn trạng thái, không thưởng
  if(e.ty===8){LEVA=0;levBusy=0;HS=[0,0,0]}else if(e.ty===3){ALT=[0,0,0,0,0];altBusy=0}else if(e.ty===16){CRCA=0;crocBusy=0}
  sflash(.3,'#fff');const nm=e.ty===8?'LEVIATHAN':e.ty===3?'SHANK':'CROCODILE';
