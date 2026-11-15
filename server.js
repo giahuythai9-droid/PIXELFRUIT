@@ -131,7 +131,7 @@ setInterval(()=>{const t=now();for(const r of [...ROOMS.values()]){if(!r.go)cont
 
 // ===== CỔNG HẦM NGỤC VÔ TẬN: cứ 5 phút xuất hiện 1 cổng ở 1 đảo bất kỳ, biến mất sau 50 giây; vào cổng -> sảnh chờ 20 giây -> cùng vào (vùng riêng d5r<id>) =====
 // Chỉnh ở đây (có thể đặt biến môi trường PT_GAP=giây để thử nhanh, ví dụ PT_GAP=30)
-const PTC={GAP:(+process.env.PT_GAP||300)*1000,LIFE:50000,LOBBY:20000,MAXP:4,ISL:[0,1,2,3,4,5,6,7,8,9,10,12],RK:[60,17,8,5.5,4,3,2.5]}; // RK = % xuất hiện cổng E,D,C,B,A,S,Đỏ (cộng đủ 100)
+const PTC={GAP:(+process.env.PT_GAP||300)*1000,LIFE:120000,LOBBY:30000,MAXP:4,ISL:[0,1,2,3,4,5,6,7,8,9,10,12],RK:[35,22,15,10,8,6,4]}; // RK = % xuất hiện cổng E,D,C,B,A,S,Đỏ (cộng đủ 100)
 const ptRank=()=>{let x=Math.random()*100;for(let i=0;i<PTC.RK.length;i++){x-=PTC.RK[i];if(x<0)return i}return 0}; // ISL = số thứ tự bến trong DOCKS của client
 const PT={on:0,end:0,next:Date.now()+PTC.GAP,i:0,rk:0},PLS=new Set();
 const ptMsg=()=>({t:'pt',on:PT.on,i:PT.i,rk:PT.rk,left:PT.on?Math.max(0,PT.end-now()):0});
@@ -142,17 +142,19 @@ function plJoin(ws){if(ws.lob)return;if(!PT.on||(ws.z!=='w'&&ws.z!=='sky')){snd(
  rmLeave(ws);let l=[...PLS].find(q=>q.go-now()>1000&&q.mem.size<PTC.MAXP);
  if(!l){l={mem:new Set(),go:now()+PTC.LOBBY,rk:PT.rk};PLS.add(l)}
  l.mem.add(ws);ws.lob=l;plSend(l)}
+function plGo(l){PLS.delete(l);const id=rid++;l.mem.forEach(c=>{c.lob=null;snd(c,{t:'rg',id,k:5,rk:l.rk,pt:1})})}
 setInterval(()=>{const t=now();
  if(!PT.on){if(t>=PT.next){PT.next=t+PTC.GAP;if(wss.clients.size){PT.on=1;PT.end=t+PTC.LIFE;PT.i=PTC.ISL[Math.random()*PTC.ISL.length|0];PT.rk=ptRank();bcast(ptMsg())}}}
  else if(t>=PT.end){PT.on=0;bcast(ptMsg())}
- for(const l of [...PLS]){if(t>=l.go){PLS.delete(l);const id=rid++;l.mem.forEach(c=>{c.lob=null;snd(c,{t:'rg',id,k:5,rk:l.rk,pt:1})})}else plSend(l)}},1000);
+ for(const l of [...PLS]){if(t>=l.go)plGo(l);else plSend(l)}},1000);
 
+const CHAT=[];   // lịch sử chat chung (100 tin gần nhất), gửi cho người mới vào
 const cs=a=>Array.isArray(a)?a.slice(0,20).map(v=>v==null||!Number.isFinite(+v)?null:Math.round(+v*100)/100):0;   // trạng thái AI boss: chỉ nhận mảng số
 wss.on('connection',ws=>{
   if(wss.clients.size>MAX){ws.close();return}
   ws.id=nid++;ws.z='w';ws.n='Hải tặc';ws.last=0;ws.lastC=0;
   ws.st={x:0,y:0,f:1,lv:1,hp:100,sky:0,lab:0,app:app({}),has:0,lastP:now(),seen:now(),lastSkill:0,lastBasic:0,slot:{},win:[],dtok:RULE.DPS_BASE*4,dlast:now(),rtt:0};
-  ws.send(JSON.stringify({t:'v',v:9,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});
+  ws.send(JSON.stringify({t:'v',v:9,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
   // Gửi ngay ảnh chụp tất cả người đang online để người mới thấy đủ, không phải đợi gói 'p'
   ply().forEach(c=>{if(c!==ws&&c.st.has)ws.send(JSON.stringify(pub(c)))});
   for(const ty in DB){if(+ty===29)continue;ws.send(JSON.stringify(+ty===8?{t:'lv',id:0}:{t:'bo',ty:+ty}))}
@@ -190,10 +192,11 @@ wss.on('connection',ws=>{
     else if(m.t==='rq'){rmLeave(ws)}
     else if(m.t==='pj'){if(t-(ws.lastPJ||0)<500)return;ws.lastPJ=t;plJoin(ws)}
     else if(m.t==='pq'){plLeave(ws,1)}
+    else if(m.t==='ps'){const l=ws.lob;if(l&&l.mem.size>=2&&t-(ws.lastPS||0)>1000){ws.lastPS=t;plGo(l)}}   // từ 2 người trở lên: bấm Bắt đầu là cùng vào ngay
     else if(m.t==='dp'){if(t-(ws.lastD||0)<50||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastD=t;   // host phòng dungeon gửi vị trí quái, server chuyển cho cả phòng
       out({t:'dp',id:ws.id,w:sn(m.w,0,60),f:m.f==null||!Number.isFinite(+m.f)?null:+m.f,a:m.a.slice(0,40).map(r=>[String(r[0]).slice(0,48),num(r[1]),num(r[2]),cs(r[3]),r[4]==null?null:sn(r[4],0,10000)]),k:Array.isArray(m.k)?m.k.slice(0,60).map(q=>String(q).slice(0,48)):[]},ws,ws.z)}
     else if(m.t==='dh'){if(t-(ws.lastDH||0)<30||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastDH=t;   // người không phải host báo sát thương (% máu) lên host
-      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,300)])},ws,ws.z)}
+      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,4000)])},ws,ws.z)}
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;
@@ -236,7 +239,7 @@ wss.on('connection',ws=>{
       if(T.l[T.a.id]&&T.l[T.b.id]){const a=T.a,b=T.b;a.trade=null;b.trade=null;
         snd(a,{t:'td',mine:T.o[a.id],theirs:T.o[b.id]});snd(b,{t:'td',mine:T.o[b.id],theirs:T.o[a.id]})}}
     else if(m.t==='tc'){endTrade(ws,1)}
-    else if(m.t==='c'){if(t-ws.lastC<500)return;ws.lastC=t;const s=String(m.s||'').trim().slice(0,80);if(!s)return;out({t:'c',id:ws.id,n:ws.n,s},ws)}});
+    else if(m.t==='c'){if(t-ws.lastC<500)return;ws.lastC=t;const s=String(m.s||'').trim().slice(0,80);if(!s)return;CHAT.push([t,ws.n,s]);if(CHAT.length>100)CHAT.shift();out({t:'c',id:ws.id,n:ws.n,s},ws)}});
   ws.on('close',()=>{rmLeave(ws);plLeave(ws,1);endTrade(ws,1);out({t:'bye',id:ws.id})});
 });
 server.listen(process.env.PORT||8080,()=>console.log('Server chạy cổng',process.env.PORT||8080));
