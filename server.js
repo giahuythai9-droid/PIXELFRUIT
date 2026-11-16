@@ -196,7 +196,7 @@ wss.on('connection',ws=>{
     else if(m.t==='dp'){if(t-(ws.lastD||0)<50||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastD=t;   // host phòng dungeon gửi vị trí quái, server chuyển cho cả phòng
       out({t:'dp',id:ws.id,w:sn(m.w,0,60),f:m.f==null||!Number.isFinite(+m.f)?null:+m.f,a:m.a.slice(0,40).map(r=>[String(r[0]).slice(0,48),num(r[1]),num(r[2]),cs(r[3]),r[4]==null?null:sn(r[4],0,10000)]),k:Array.isArray(m.k)?m.k.slice(0,60).map(q=>String(q).slice(0,48)):[]},ws,ws.z)}
     else if(m.t==='dh'){if(t-(ws.lastDH||0)<30||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastDH=t;   // người không phải host báo sát thương (% máu) lên host
-      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,4000)])},ws,ws.z)}
+      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,12000)])},ws,ws.z)}
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;
