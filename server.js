@@ -20,7 +20,7 @@ const RULE={
  SKILL_BURST:6,      // tối đa số chiêu / 1 giây (chống spam macro)
  MAXSPD:520,         // px/giây tối đa (dash, thuấn bộ, bay đều nằm trong ngưỡng này)
  TELE:900,           // lệch quá số px này trong 1 gói = coi là dịch chuyển hợp lệ (đổi đảo/dungeon)
- DPS_BASE:600,DPS_LV:40, // ngân sách sát thương/giây = BASE + LV*mức, cho phép dồn 4 giây
+ DPS_BASE:3000,DPS_LV:300,DPS_WIN:10, // ngân sách sát thương/giây = BASE + LV*mức, cho phép dồn DPS_WIN giây (đã nâng để Gojo đánh diện rộng không bị cắt dame)
  STALE:15000         // ms không gửi gì => ngắt kết nối
 };
 const now=()=>Date.now();
@@ -100,7 +100,9 @@ function moveOK(ws,nx,ny,t){const s=ws.st;if(!s.has){s.has=1;return{x:nx,y:ny}}
  if(d>mx){const k=mx/d;return{x:Math.round(s.x+(nx-s.x)*k),y:Math.round(s.y+(ny-s.y)*k),fix:1}}
  return{x:nx,y:ny}}
 // Ngân sách sát thương (token bucket) theo cấp: chặn one-shot / hack damage
-function dmgBudget(ws,t){const s=ws.st,rate=RULE.DPS_BASE+RULE.DPS_LV*s.lv,cap=rate*4;
+// Log khi sát thương client gửi bị server cắt (để biết có phải do ngân sách dame không)
+function dmgClipLog(ws,what,sent,got,bud,mx){sent=+sent||0;if(sent<=got)return;const t=Date.now();if(t-(ws._clipT||0)<2000)return;ws._clipT=t;console.log('[DMG-CLIP]',ws.n||ws.id,'lv',ws.st&&ws.st.lv,what,'gui',Math.round(sent),'cho phep',Math.round(got),'ngan sach con',Math.round(bud),'mau toi da',mx)}
+function dmgBudget(ws,t){const s=ws.st,rate=RULE.DPS_BASE+RULE.DPS_LV*s.lv,cap=rate*RULE.DPS_WIN;
  s.dtok=Math.min(cap,s.dtok+rate*(t-s.dlast)/1000);s.dlast=t;return s.dtok}
 
 // ===== Vòng đồng bộ chung: dọn kết nối chết + gửi ping để đo độ trễ =====
@@ -153,7 +155,7 @@ const cs=a=>Array.isArray(a)?a.slice(0,20).map(v=>v==null||!Number.isFinite(+v)?
 wss.on('connection',ws=>{
   if(wss.clients.size>MAX){ws.close();return}
   ws.id=nid++;ws.z='w';ws.n='Hải tặc';ws.last=0;ws.lastC=0;
-  ws.st={x:0,y:0,f:1,lv:1,hp:100,sky:0,lab:0,app:app({}),has:0,lastP:now(),seen:now(),lastSkill:0,lastBasic:0,slot:{},win:[],dtok:RULE.DPS_BASE*4,dlast:now(),rtt:0};
+  ws.st={x:0,y:0,f:1,lv:1,hp:100,sky:0,lab:0,app:app({}),has:0,lastP:now(),seen:now(),lastSkill:0,lastBasic:0,slot:{},win:[],dtok:RULE.DPS_BASE*RULE.DPS_WIN,dlast:now(),rtt:0};
   ws.send(JSON.stringify({t:'v',v:10,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
   // Gửi ngay ảnh chụp tất cả người đang online để người mới thấy đủ, không phải đợi gói 'p'
   ply().forEach(c=>{if(c!==ws&&c.st.has)ws.send(JSON.stringify(pub(c)))});
@@ -201,12 +203,12 @@ wss.on('connection',ws=>{
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;
-      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),b.mx,bud);if(!d)return;
+      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),b.mx,bud);dmgClipLog(ws,'boss',m.d,d,bud,b.mx);if(!d)return;
       ws.st.dtok-=d;b.hp-=d;b.dd.set(ws.id,(b.dd.get(ws.id)||0)+d);
       if(b.hp<=0){const by=[...b.dd].filter(([id,v])=>v>=b.mx*D.th).map(x=>x[0]);delete DB[ty];if(ty===8){LVDIED=t;LVT=t}out({t:'md',i:D.id,by},null);if(ty===29)wbStop(true)}}
     else if(m.t==='dmg'){const mb=MB[m.i|0];if(!mb||mb.dead||ws.z!==mb.z)return;
       if(Math.hypot((ws.px||0)-mb.x,(ws.py||0)-mb.y)>(mb.cl?1600:700))return;
-      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),mb.mx,bud);if(!d)return;
+      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),mb.mx,bud);dmgClipLog(ws,'quai ty'+mb.ty,m.d,d,bud,mb.mx);if(!d)return;
       ws.st.dtok-=d;mb.hp-=d;mb.al=6;mb.dd.set(ws.id,(mb.dd.get(ws.id)||0)+d);
       if(mb.hp<=0){mb.hp=0;mb.dead=1;mb.rs=mb.rt;
        // boss: phải gây ≥3% máu mới có thưởng (chống ăn ké); quái thường: đánh trúng là có phần
