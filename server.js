@@ -49,7 +49,7 @@ setInterval(()=>{const t=Date.now();
  if(!WB.on){if(t>=WB.next){if(!wss.clients.size)WB.next=t+wbGap();else if(dynStart(29)){WB.on=1;WB.end=t+WBCFG.DUR;WB.melt=0;bcast(wbMsg())}}}
  else if(t>=WB.end||!DB[29]){if(DB[29]){delete DB[29];bcast({t:'md',i:DYN[29].id,by:[]})}wbStop(false)}},1000);
 // ===== QUÁI THƯỜNG TẤT CẢ ĐẢO do server điều khiển (AI, máu, đánh người, hồi sinh) =====
-function mst(ty,big,lv){const hb=40+3*lv,db=6+.3*lv;let hm=1,dm=1;if(ty===0&&big){hm=6;dm=1.8}else if(ty===2){hm=4;dm=1.3}else if(ty===5){hm=8;dm=1.2}else if(ty===6){hm=1.3;dm=1.1}else if(ty===7){hm=10;dm=1.3}else if(ty===9){hm=1.4;dm=1.15}else if(ty===10){hm=11;dm=1.35}else if(ty===11){hm=1.6;dm=1.25}else if(ty===12){hm=2.2;dm=1.1}else if(ty===13){hm=14;dm=.95}else if(ty===14){hm=2.6;dm=1.15}else if(ty===15){hm=18;dm=.8}else if(ty===16){hm=20;dm=.85}else if(ty===17){hm=2.8;dm=1.2}else if(ty===18){hm=22;dm=.85}else if(ty===19){hm=2.8;dm=1.2}else if(ty===20){hm=3;dm=1.25}else if(ty===21){hm=3.2;dm=1.3}else if(ty===22){hm=22;dm=.9}else if(ty===23){hm=26;dm=.95}else if(ty===24){hm=3.6;dm=1.3}else if(ty===25){hm=30;dm=1}else if(ty===26){hm=34;dm=1.15}else if(ty===27){hm=3.8;dm=1.35}else if(ty===28){hm=38;dm=1.2}else if(ty===30){hm=4;dm=1.35}else if(ty===31){hm=42;dm=1.25}return[Math.round(hb*hm),Math.round(db*dm)]}
+function mst(ty,big,lv){const hb=40+3*lv,db=6+.3*lv;let hm=1,dm=1;if(ty===0&&big){hm=6;dm=1.8}else if(ty===2){hm=4;dm=1.3}else if(ty===5){hm=8;dm=1.2}else if(ty===6){hm=1.3;dm=1.1}else if(ty===7){hm=10;dm=1.3}else if(ty===9){hm=1.4;dm=1.15}else if(ty===10){hm=11;dm=1.35}else if(ty===11){hm=1.6;dm=1.25}else if(ty===12){hm=2.2;dm=1.1}else if(ty===13){hm=14;dm=.95}else if(ty===14){hm=2.6;dm=1.15}else if(ty===15){hm=18;dm=.8}else if(ty===16){hm=20;dm=.85}else if(ty===17){hm=2.8;dm=1.2}else if(ty===18){hm=22;dm=.85}else if(ty===19){hm=2.8;dm=1.2}else if(ty===20){hm=3;dm=1.25}else if(ty===21){hm=3.2;dm=1.3}else if(ty===22){hm=22;dm=.9}else if(ty===23){hm=26;dm=.95}else if(ty===24){hm=3.6;dm=1.3}else if(ty===25){hm=30;dm=1}else if(ty===26){hm=34;dm=1.15}else if(ty===27){hm=3.8;dm=1.35}else if(ty===28){hm=38;dm=1.2}else if(ty===30){hm=4;dm=1.35}else if(ty===31){hm=42;dm=1.25}else if(ty===33){return[1000000,Math.round(db*1.4)]}return[Math.round(hb*hm),Math.round(db*dm)]}
 // SPECIAL = quái chỉ chạy ở client (Shank, Leviathan, cá sấu, Law...). CLAI = boss AI chạy ở client nhưng MÁU + CHẾT + HỒI SINH do server giữ chung
 const SPECIAL=new Set([3,8,16,25,26]),CLAI=new Set([15,18,22,23,28,31]);
 let MB=[];
@@ -154,7 +154,7 @@ wss.on('connection',ws=>{
   if(wss.clients.size>MAX){ws.close();return}
   ws.id=nid++;ws.z='w';ws.n='Hải tặc';ws.last=0;ws.lastC=0;
   ws.st={x:0,y:0,f:1,lv:1,hp:100,sky:0,lab:0,app:app({}),has:0,lastP:now(),seen:now(),lastSkill:0,lastBasic:0,slot:{},win:[],dtok:RULE.DPS_BASE*4,dlast:now(),rtt:0};
-  ws.send(JSON.stringify({t:'v',v:9,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
+  ws.send(JSON.stringify({t:'v',v:10,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
   // Gửi ngay ảnh chụp tất cả người đang online để người mới thấy đủ, không phải đợi gói 'p'
   ply().forEach(c=>{if(c!==ws&&c.st.has)ws.send(JSON.stringify(pub(c)))});
   for(const ty in DB){if(+ty===29)continue;ws.send(JSON.stringify(+ty===8?{t:'lv',id:0}:{t:'bo',ty:+ty}))}
@@ -174,6 +174,7 @@ wss.on('connection',ws=>{
       if(r.fix)ws.send(JSON.stringify({t:'fix',x:r.x,y:r.y,ts:t}))}   // báo client về vị trí server chấp nhận
     else if(m.t==='e'&&Array.isArray(m.a)){if(t-(ws.lastE||0)<50)return;ws.lastE=t;
       out({t:'e',id:ws.id,px:ws.px|0,py:ws.py|0,a:m.a.slice(0,14).map(r=>[String(r[0]).slice(0,48),num(r[1]),num(r[2]),Math.max(0,+r[3]||0),Math.max(0,+r[4]||0)])},ws,ws.z)}
+    else if(m.t==='tp'){if(t-(ws.lastTP||0)<1500)return;ws.lastTP=t;ws.st.has=0}   // chiêu dịch chuyển (Door C/V): bỏ qua kiểm tra tốc độ cho gói vị trí kế tiếp, tối đa 1 lần/1,5 giây
     else if(m.t==='k'){out({t:'k',id:ws.id,k:String(m.k||'').slice(0,48)},ws,ws.z)}
     else if(m.t==='a'){if(t-(ws.lastA||0)<30)return;ws.lastA=t;
       const i=sn(m.i,0,20);
@@ -185,7 +186,7 @@ wss.on('connection',ws=>{
     else if(m.t==='bp'){if(t-(ws.lastBP||0)<50)return;ws.lastBP=t;
       if(Array.isArray(m.a))for(const r of m.a.slice(0,8)){const mb=MB[r[0]|0];if(!mb||!mb.cl||mb.dead||mb.host!==ws)continue;const x=num(r[1]),y=num(r[2]);if(Math.hypot(x-mb.hx,y-mb.hy)>2500)continue;mb.x=x;mb.y=y;mb.s=cs(r[3])}
       if(Array.isArray(m.d))for(const r of m.d.slice(0,3)){const ty=r[0]|0,b=DB[ty];if(!b||b.host!==ws)continue;const x=num(r[1]),y=num(r[2]);if(Math.hypot(x-DYN[ty].x,y-DYN[ty].y)>4000)continue;b.x=x;b.y=y;b.s=cs(r[3])}}
-    else if(m.t==='rc'){if(t-(ws.lastR||0)<1000||ROOMS.size>=200)return;ws.lastR=t;const k=sn(m.k,0,4);if(!k)return;rmLeave(ws);
+    else if(m.t==='rc'){if(t-(ws.lastR||0)<1000||ROOMS.size>=200)return;ws.lastR=t;const k=sn(m.k,0,6);if(!k||k===5)return;rmLeave(ws);
       const r={id:rid++,k,host:ws,mem:new Set([ws]),go:0};ROOMS.set(r.id,r);ws.room=r;rmMem(r);rmList()}
     else if(m.t==='rj'){if(t-(ws.lastR||0)<500)return;ws.lastR=t;const r=ROOMS.get(m.id|0);if(!r||ws.room===r||r.mem.size>=RMAX||(r.go&&r.go-t<2000))return;
       rmLeave(ws);r.mem.add(ws);ws.room=r;if(!r.go&&r.mem.size>=2)r.go=t+RCD;rmMem(r);rmList()}
@@ -194,9 +195,9 @@ wss.on('connection',ws=>{
     else if(m.t==='pq'){plLeave(ws,1)}
     else if(m.t==='ps'){const l=ws.lob;if(l&&l.mem.size>=2&&t-(ws.lastPS||0)>1000){ws.lastPS=t;plGo(l)}}   // từ 2 người trở lên: bấm Bắt đầu là cùng vào ngay
     else if(m.t==='dp'){if(t-(ws.lastD||0)<50||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastD=t;   // host phòng dungeon gửi vị trí quái, server chuyển cho cả phòng
-      out({t:'dp',id:ws.id,w:sn(m.w,0,60),f:m.f==null||!Number.isFinite(+m.f)?null:+m.f,a:m.a.slice(0,40).map(r=>[String(r[0]).slice(0,48),num(r[1]),num(r[2]),cs(r[3]),r[4]==null?null:sn(r[4],0,10000)]),k:Array.isArray(m.k)?m.k.slice(0,60).map(q=>String(q).slice(0,48)):[]},ws,ws.z)}
+      out({t:'dp',id:ws.id,w:sn(m.w,0,60),f:m.f==null||!Number.isFinite(+m.f)?null:+m.f,a:m.a.slice(0,40).map(r=>[String(r[0]).slice(0,48),num(r[1]),num(r[2]),cs(r[3]),r[4]==null?null:sn(r[4],0,20000000)]),k:Array.isArray(m.k)?m.k.slice(0,60).map(q=>String(q).slice(0,48)):[]},ws,ws.z)}
     else if(m.t==='dh'){if(t-(ws.lastDH||0)<30||!Array.isArray(m.a)||!/^d[0-9]r/.test(ws.z))return;ws.lastDH=t;   // người không phải host báo sát thương (% máu) lên host
-      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,12000)])},ws,ws.z)}
+      out({t:'dh',id:ws.id,a:m.a.slice(0,20).map(r=>[String(r[0]).slice(0,48),sn(r[1],0,5000000)])},ws,ws.z)}
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;
