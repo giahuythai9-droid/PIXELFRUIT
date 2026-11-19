@@ -4290,7 +4290,7 @@ function netMs(m){SVT=performance.now();try{netDynSync(m)}catch(e){}if(P.lab||DG
  for(const a of m.a){const k=a[0]|0,tb=SVTAB[k];if(!tb)continue;seen[k]=1;
   let e=mp[k]||E.find(q=>q.sv==null&&q.hx===tb[0]&&q.hy===tb[1]&&q.ty===tb[2]&&q.hp>0);
   if(!e){e=mk(tb[3],tb[0],tb[1],tb[2],tb[4]);E.push(e)}
-  e.sv=k;e.hp=e._sh=a[3];e.mx=a[4];e._tx=a[1];e._ty=a[2];{const h=a[5]|0;e._hid=h;e._host=h?(h===NET.id?1:0):undefined;if(e._host===0&&a[6])aiSync(e,a[6])}if(tb[4]>0&&e.lv!==tb[4])e.lv=tb[4];if(e.hp<e.mx)e.al=Math.max(e.al,2)}
+  e.sv=k;if(!(e.hp<=0&&!e.srv&&e._sh>0))e.hp=e._sh=a[3];e.mx=a[4];e._tx=a[1];e._ty=a[2];{const h=a[5]|0;e._hid=h;e._host=h?(h===NET.id?1:0):undefined;if(e._host===0&&a[6])aiSync(e,a[6])}if(tb[4]>0&&e.lv!==tb[4])e.lv=tb[4];if(e.hp<e.mx)e.al=Math.max(e.al,2)}
  for(const e of E)if(e.sv!=null&&e.sv<9000&&!seen[e.sv]&&e.hp>0&&Math.hypot(e.x-P.x,e.y-P.y)<450){e.srv=1;e.noRew=1;e.hp=0}}
 function netMd(m){const e=E.find(q=>q.sv===m.i&&q.hp>0);if(!e)return;e.srv=1;if(!(m.by||[]).includes(NET.id))e.noRew=1;e.hp=0;e.flash=.1}
 function svPre(){if(!svOn())return;for(const e of E)if(e.sv!=null&&!CLAI.has(e.ty|0))e.stun=Math.max(e.stun,.5)}
