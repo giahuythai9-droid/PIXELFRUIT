@@ -100,10 +100,7 @@ function moveOK(ws,nx,ny,t){const s=ws.st;if(!s.has){s.has=1;return{x:nx,y:ny}}
  if(d>mx){const k=mx/d;return{x:Math.round(s.x+(nx-s.x)*k),y:Math.round(s.y+(ny-s.y)*k),fix:1}}
  return{x:nx,y:ny}}
 // Ngân sách sát thương (token bucket) theo cấp: chặn one-shot / hack damage
-// Log khi sát thương client gửi bị server cắt (để biết có phải do ngân sách dame không)
-function dmgClipLog(ws,what,sent,got,bud,mx){sent=+sent||0;if(sent<=got)return;const t=Date.now();if(t-(ws._clipT||0)<2000)return;ws._clipT=t;console.log('[DMG-CLIP]',ws.n||ws.id,'lv',ws.st&&ws.st.lv,what,'gui',Math.round(sent),'cho phep',Math.round(got),'ngan sach con',Math.round(bud),'mau toi da',mx)}
-function dmgBudget(ws,t){const s=ws.st,rate=RULE.DPS_BASE+RULE.DPS_LV*s.lv,cap=rate*RULE.DPS_WIN;
- s.dtok=Math.min(cap,s.dtok+rate*(t-s.dlast)/1000);s.dlast=t;return s.dtok}
+function dmgBudget(ws,t){return Infinity} // đã tắt anti-cheat sát thương
 
 // ===== Vòng đồng bộ chung: dọn kết nối chết + gửi ping để đo độ trễ =====
 setInterval(()=>{const t=now();wss.clients.forEach(c=>{if(c.readyState!==1)return;
@@ -203,12 +200,12 @@ wss.on('connection',ws=>{
     else if(m.t==='mtab'){setTab(m.a);ws.send(JSON.stringify({t:'mn',n:MB.length}))}
     else if(m.t==='dmg'&&DID[m.i|0]){const ty=DID[m.i|0],b=DB[ty],D=DYN[ty];if(!b||(ws.z!=='w'&&ws.z!=='sky'))return;
       if(Math.hypot((ws.px||0)-D.x,(ws.py||0)-D.y)>1600)return;
-      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),b.mx,bud);dmgClipLog(ws,'boss',m.d,d,bud,b.mx);if(!d)return;
+      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),b.mx,bud);if(!d)return;
       ws.st.dtok-=d;b.hp-=d;b.dd.set(ws.id,(b.dd.get(ws.id)||0)+d);
       if(b.hp<=0){const by=[...b.dd].filter(([id,v])=>v>=b.mx*D.th).map(x=>x[0]);delete DB[ty];if(ty===8){LVDIED=t;LVT=t}out({t:'md',i:D.id,by},null);if(ty===29)wbStop(true)}}
     else if(m.t==='dmg'){const mb=MB[m.i|0];if(!mb||mb.dead||ws.z!==mb.z)return;
       if(Math.hypot((ws.px||0)-mb.x,(ws.py||0)-mb.y)>(mb.cl?1600:700))return;
-      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),mb.mx,bud);dmgClipLog(ws,'quai ty'+mb.ty,m.d,d,bud,mb.mx);if(!d)return;
+      const bud=dmgBudget(ws,t);let d=Math.min(Math.max(0,+m.d||0),mb.mx,bud);if(!d)return;
       ws.st.dtok-=d;mb.hp-=d;mb.al=6;mb.dd.set(ws.id,(mb.dd.get(ws.id)||0)+d);
       if(mb.hp<=0){mb.hp=0;mb.dead=1;mb.rs=mb.rt;
        // boss: phải gây ≥3% máu mới có thưởng (chống ăn ké); quái thường: đánh trúng là có phần
