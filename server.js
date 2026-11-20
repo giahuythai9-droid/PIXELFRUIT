@@ -34,7 +34,7 @@ const chAge=()=>CH?(Date.now()-CH.born)/1000:0;
 setInterval(()=>{if(CH&&Date.now()-CH.born>900000){CH=null;bcast({t:'cx'})}},30000);
 // ===== BOSS TRIỆU HỒI DÙNG CHUNG (Leviathan, Shank, Crocodile): server giữ máu / cái chết, AI chạy ở client =====
 // Leviathan máu trâu mặc định 2.000.000 (kể cả 1 người)
-const DYN={8:{id:9999,mx:2000000,x:2780,y:1010,th:.01},3:{id:9990,mx:3000,x:2790,y:185,th:.05},16:{id:9991,mx:mst(16,1,600)[0],x:1545,y:935,th:.03},29:{id:9992,mx:2000000,x:6450,y:534,th:.01}};
+const DYN={8:{id:9999,mx:2000000,x:2780,y:1010,th:.01},3:{id:9990,mx:3000,x:2790,y:185,th:.05},16:{id:9991,mx:mst(16,1,600)[0],x:1545,y:935,th:.03},29:{id:9992,mx:2000000,x:6450,y:534,th:.01},34:{id:9993,mx:1e15,x:9850,y:830,th:1}};
 const DID={};for(const k in DYN)DID[DYN[k].id]=+k;
 const DB={}; // ty -> {hp,mx,dd,born}
 function dynStart(ty){if(DB[ty]||!DYN[ty])return false;DB[ty]={hp:DYN[ty].mx,mx:DYN[ty].mx,dd:new Map(),born:Date.now()};return true}
@@ -48,6 +48,16 @@ function wbStop(win){if(!WB.on)return;WB.on=0;WB.melt=Date.now()+(win?WBCFG.MELT
 setInterval(()=>{const t=Date.now();
  if(!WB.on){if(t>=WB.next){if(!wss.clients.size)WB.next=t+wbGap();else if(dynStart(29)){WB.on=1;WB.end=t+WBCFG.DUR;WB.melt=0;bcast(wbMsg())}}}
  else if(t>=WB.end||!DB[29]){if(DB[29]){delete DB[29];bcast({t:'md',i:DYN[29].id,by:[]})}wbStop(false)}},1000);
+// ===== BOSS ICHIGO (Đảo Ichigo): mỗi 10 phút xuất hiện, ở lại 5 phút, máu bất tử (200k dame = 1%) =====
+const IGC={CYC:600000,DUR:300000},IG={on:0,end:0,blk:-1,next:Date.now()+600000}; // next: lần xuất hiện kế tiếp = 10 phút SAU KHI boss biến mất (lần đầu: 10 phút sau khi bật server)
+function igEnd(){if(!IG.on)return;const b=DB[34];if(!IG.adm)IG.next=Date.now()+IGC.CYC;IG.on=0;IG.adm=0;wss.clients.forEach(c=>{if(c.readyState===1)snd(c,{t:'ig',on:0,d:b?(b.dd.get(c.id)||0):0})});delete DB[34]}
+setInterval(()=>{const t=Date.now();
+ // Chỉ tính giờ khi CÓ người chơi trong game: server trống thì đồng hồ 10 phút bị reset lại từ đầu
+ if(!wss.clients.size){if(IG.on)igEnd();IG.next=t+IGC.CYC;return}
+ if(IG.on){if(t>=IG.end||!DB[34])igEnd();return}
+ if(t>=IG.next&&dynStart(34)){IG.on=1;IG.adm=0;IG.end=t+IGC.DUR;bcast({t:'ig',on:1,left:IGC.DUR})}},1000);
+// Lệnh admin /*Summon Ichigo: triệu hồi Ichigo ngay (ở lại 5 phút, không ảnh hưởng chu kỳ 10 phút)
+function igSummon(t){if(IG.on||!dynStart(34))return false;IG.on=1;IG.adm=1;IG.blk=Math.floor(t/IGC.CYC);IG.end=t+IGC.DUR;bcast({t:'ig',on:1,left:IGC.DUR});return true}
 // ===== QUÁI THƯỜNG TẤT CẢ ĐẢO do server điều khiển (AI, máu, đánh người, hồi sinh) =====
 function mst(ty,big,lv){const hb=40+3*lv,db=6+.3*lv;let hm=1,dm=1;if(ty===0&&big){hm=6;dm=1.8}else if(ty===2){hm=4;dm=1.3}else if(ty===5){hm=8;dm=1.2}else if(ty===6){hm=1.3;dm=1.1}else if(ty===7){hm=10;dm=1.3}else if(ty===9){hm=1.4;dm=1.15}else if(ty===10){hm=11;dm=1.35}else if(ty===11){hm=1.6;dm=1.25}else if(ty===12){hm=2.2;dm=1.1}else if(ty===13){hm=14;dm=.95}else if(ty===14){hm=2.6;dm=1.15}else if(ty===15){hm=18;dm=.8}else if(ty===16){hm=20;dm=.85}else if(ty===17){hm=2.8;dm=1.2}else if(ty===18){hm=22;dm=.85}else if(ty===19){hm=2.8;dm=1.2}else if(ty===20){hm=3;dm=1.25}else if(ty===21){hm=3.2;dm=1.3}else if(ty===22){hm=22;dm=.9}else if(ty===23){hm=26;dm=.95}else if(ty===24){hm=3.6;dm=1.3}else if(ty===25){hm=30;dm=1}else if(ty===26){hm=34;dm=1.15}else if(ty===27){hm=3.8;dm=1.35}else if(ty===28){hm=38;dm=1.2}else if(ty===30){hm=4;dm=1.35}else if(ty===31){hm=42;dm=1.25}else if(ty===33){return[1000000,Math.round(db*1.4)]}return[Math.round(hb*hm),Math.round(db*dm)]}
 // SPECIAL = quái chỉ chạy ở client (Shank, Leviathan, cá sấu, Law...). CLAI = boss AI chạy ở client nhưng MÁU + CHẾT + HỒI SINH do server giữ chung
@@ -156,8 +166,8 @@ wss.on('connection',ws=>{
   ws.send(JSON.stringify({t:'v',v:10,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
   // Gửi ngay ảnh chụp tất cả người đang online để người mới thấy đủ, không phải đợi gói 'p'
   ply().forEach(c=>{if(c!==ws&&c.st.has)ws.send(JSON.stringify(pub(c)))});
-  for(const ty in DB){if(+ty===29)continue;ws.send(JSON.stringify(+ty===8?{t:'lv',id:0}:{t:'bo',ty:+ty}))}
-  snd(ws,wbMsg());if(PT.on)snd(ws,ptMsg());   // boss đang sống: người mới vào cũng thấy
+  for(const ty in DB){if(+ty===29||+ty===34)continue;ws.send(JSON.stringify(+ty===8?{t:'lv',id:0}:{t:'bo',ty:+ty}))}
+  snd(ws,wbMsg());if(IG.on)snd(ws,{t:'ig',on:1,left:Math.max(0,IG.end-now())});if(PT.on)snd(ws,ptMsg());   // boss đang sống: người mới vào cũng thấy
   const out=(o,skip,zone)=>bcast(o,skip,zone);
   ws.on('pong',()=>{ws.st.seen=now()});
   ws.on('message',d=>{let m;try{m=JSON.parse(d)}catch(e){return}
@@ -211,6 +221,7 @@ wss.on('connection',ws=>{
        // boss: phải gây ≥3% máu mới có thưởng (chống ăn ké); quái thường: đánh trúng là có phần
        const by=[...mb.dd].filter(([id,v])=>!mb.cl||v>=mb.mx*.03).map(x=>x[0]);
        out({t:'md',i:mb.i,by},null,mb.z);mb.dd.clear()}}
+    else if(m.t==='igs'){if(t-(ws.lastIG||0)<2000)return;ws.lastIG=t;snd(ws,{t:'igr',ok:igSummon(t)?1:0})}   // admin: triệu hồi Ichigo
     else if(m.t==='lv'){if(DB[8]||CH||t-(LVT||0)<10000)return;LVT=t;dynStart(8);out({t:'lv',id:ws.id},ws)}
     else if(m.t==='bo'){const ty=m.ty|0;if(ty!==3&&ty!==16)return;if(dynStart(ty))out({t:'bo',ty},ws)}
     else if(m.t==='cs'){if(CH){if(chAge()<10&&!(ws.key&&CH.opened.has(ws.key)))ws.send(JSON.stringify({t:'cs',tier:CH.tier,age:chAge()}));return}
