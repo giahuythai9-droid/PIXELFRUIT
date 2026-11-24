@@ -27,7 +27,7 @@ const now=()=>Date.now();
 const num=v=>Number.isFinite(+v)?Math.max(0,Math.min(20000,+v|0)):0;
 const sn=(v,lo,hi)=>{v=Number.isFinite(+v)?+v|0:0;return v<lo?lo:v>hi?hi:v};
 const zn=z=>/^[a-z0-9]{1,12}$/.test(z)?z:'w';
-const app=m=>({md:sn(m.md,0,2),si:sn(m.si,0,255),fi:sn(m.fi,0,255),mi:sn(m.mi,0,255),eq:sn(m.eq,-1,255),hk:m.hk?1:0,fa:sn(m.fa,0,9),s2:m.s2?1:0,lf:m.lf?1:0,dlf:m.dlf?1:0,vf:m.vf?1:0,bt:m.bt?1:0,iw:m.iw?1:0,fh:sn(m.fh,0,300),jz:sn(m.jz,0,300),lift:sn(m.lift,0,300)});
+const app=m=>({ff:m.ff?1:0,mg:m.mg?1:0,md:sn(m.md,0,2),si:sn(m.si,0,255),fi:sn(m.fi,0,255),mi:sn(m.mi,0,255),eq:sn(m.eq,-1,255),hk:m.hk?1:0,fa:sn(m.fa,0,9),s2:m.s2?1:0,lf:m.lf?1:0,dlf:m.dlf?1:0,vf:m.vf?1:0,bt:m.bt?1:0,iw:m.iw?1:0,fh:sn(m.fh,0,300),jz:sn(m.jz,0,300),lift:sn(m.lift,0,300)});
 // Rương chung: server giữ trạng thái để người vào sau vẫn thấy
 let CH=null,LVT=0,LVDIED=0; // CH={tier,born,opened:Set(mã nhân vật đã mở)}: rương Leviathan cho TẤT CẢ người chơi, mỗi người mở 1 lần
 const chAge=()=>CH?(Date.now()-CH.born)/1000:0;
