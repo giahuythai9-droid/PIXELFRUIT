@@ -1,5 +1,20 @@
 // Server online cho Pixel Fruit Blade v4: relay + vùng chơi chung (đảo / dungeon) + rương chung
 // Đặt cùng thư mục với index.html. Chạy:  npm install && npm start
+const crypto=require('crypto');
+// Mật khẩu admin: đặt trong biến môi trường ADMIN_KEY (KHÔNG ghi thẳng vào code). Không đặt = tắt admin online.
+const AK=String(process.env.ADMIN_KEY||'');
+const eqKey=(a,b)=>{const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&crypto.timingSafeEqual(x,y)};
+// Giới hạn an toàn cho bản lưu của người chơi thường (admin không bị giới hạn). Chỉnh nếu game của bạn cho phép cao hơn.
+const SAVE_MAX={LV:1300,BELI:1e12,GEM:1e12};
+function cleanSave(d){let o;try{o=JSON.parse(d)}catch(e){return null}if(!o||typeof o!=='object')return null;let ch=0;
+  const cap=(x,mx)=>{const n=Number(x);if(!Number.isFinite(n)||n<0){ch=1;return 0}if(n>mx){ch=1;return mx}return x};
+  if('LV' in o)o.LV=cap(o.LV,SAVE_MAX.LV);if('BELI' in o)o.BELI=cap(o.BELI,SAVE_MAX.BELI);
+  if(o.MAT&&typeof o.MAT==='object'&&'gem' in o.MAT)o.MAT.gem=cap(o.MAT.gem,SAVE_MAX.GEM);
+  return ch?JSON.stringify(o):d}
+// ===== Trái ác quỷ rơi dưới đất, đồng bộ giữa mọi người chơi =====
+const GF=new Map(),GFLIFE=300000,GFMAX=300,GFPER=3;let gfid=1;
+const gfPub=(f,t)=>({id:f.id,i:f.i,x:f.x,y:f.y,z:f.z,left:Math.max(0,f.exp-t)});
+setInterval(()=>{const t=Date.now();for(const[id,f]of GF)if(f.exp<=t)GF.delete(id)},5000);
 const http=require('http'),fs=require('fs'),path=require('path'),{WebSocketServer}=require('ws');
 const GAME=path.join(__dirname,'index.html');
 const server=http.createServer((q,r)=>{if(q.url==='/health'){r.writeHead(200);r.end('OK');return}fs.readFile(GAME,(e,d)=>{if(e){r.writeHead(500);r.end('Thiếu file index.html');return}r.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache'});r.end(d)})});
@@ -34,7 +49,7 @@ const chAge=()=>CH?(Date.now()-CH.born)/1000:0;
 setInterval(()=>{if(CH&&Date.now()-CH.born>900000){CH=null;bcast({t:'cx'})}},30000);
 // ===== BOSS TRIỆU HỒI DÙNG CHUNG (Leviathan, Shank, Crocodile): server giữ máu / cái chết, AI chạy ở client =====
 // Leviathan máu trâu mặc định 2.000.000 (kể cả 1 người)
-const DYN={8:{id:9999,mx:2000000,x:2780,y:1010,th:.01},3:{id:9990,mx:3000,x:2790,y:185,th:.05},16:{id:9991,mx:mst(16,1,600)[0],x:1545,y:935,th:.03},29:{id:9992,mx:2000000,x:6450,y:534,th:.01},34:{id:9993,mx:1e15,x:9850,y:830,th:1}};
+const DYN={8:{id:9999,mx:2000000,x:2780,y:1010,th:.01},3:{id:9990,mx:3000,x:2790,y:185,th:.05},16:{id:9991,mx:mst(16,1,600)[0],x:1545,y:935,th:.03},29:{id:9992,mx:2000000,x:6450,y:534,th:.01},34:{id:9993,mx:1e15,x:9850,y:830,th:1},35:{id:9994,mx:5000000,x:9850,y:1400,th:.01}};   // 35 = NOBARA (Đảo Boss · Đấu Trường): 5 triệu máu, đánh chung, ≥1% sát thương mới có thưởng
 const DID={};for(const k in DYN)DID[DYN[k].id]=+k;
 const DB={}; // ty -> {hp,mx,dd,born}
 function dynStart(ty){if(DB[ty]||!DYN[ty])return false;DB[ty]={hp:DYN[ty].mx,mx:DYN[ty].mx,dd:new Map(),born:Date.now()};return true}
@@ -163,7 +178,7 @@ wss.on('connection',ws=>{
   if(wss.clients.size>MAX){ws.close();return}
   ws.id=nid++;ws.z='w';ws.n='Hải tặc';ws.last=0;ws.lastC=0;
   ws.st={x:0,y:0,f:1,lv:1,hp:100,sky:0,lab:0,app:app({}),has:0,lastP:now(),seen:now(),lastSkill:0,lastBasic:0,slot:{},win:[],dtok:RULE.DPS_BASE*RULE.DPS_WIN,dlast:now(),rtt:0};
-  ws.send(JSON.stringify({t:'v',v:10,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});
+  ws.send(JSON.stringify({t:'v',v:10,id:ws.id,ts:now()}));snd(ws,{t:'rl',a:[...ROOMS.values()].map(rmPub)});if(CHAT.length)snd(ws,{t:'ch',a:CHAT});snd(ws,{t:'fl',a:[...GF.values()].map(f=>gfPub(f,now()))});
   // Gửi ngay ảnh chụp tất cả người đang online để người mới thấy đủ, không phải đợi gói 'p'
   ply().forEach(c=>{if(c!==ws&&c.st.has)ws.send(JSON.stringify(pub(c)))});
   for(const ty in DB){if(+ty===29||+ty===34)continue;ws.send(JSON.stringify(+ty===8?{t:'lv',id:0}:{t:'bo',ty:+ty}))}
@@ -221,20 +236,30 @@ wss.on('connection',ws=>{
        // boss: phải gây ≥3% máu mới có thưởng (chống ăn ké); quái thường: đánh trúng là có phần
        const by=[...mb.dd].filter(([id,v])=>!mb.cl||v>=mb.mx*.03).map(x=>x[0]);
        out({t:'md',i:mb.i,by},null,mb.z);mb.dd.clear()}}
-    else if(m.t==='igs'){if(t-(ws.lastIG||0)<2000)return;ws.lastIG=t;snd(ws,{t:'igr',ok:igSummon(t)?1:0})}   // admin: triệu hồi Ichigo
+    else if(m.t==='fd'){const i=sn(m.i,0,255),left=clamp(Math.floor(+m.left||0),0,GFLIFE),x=num(m.x),y=num(m.y);   // vứt trái xuống đất: server giữ, báo cho mọi người
+      let mine=0;for(const f of GF.values())if(f.o===ws.id)mine++;
+      if(t-(ws.lastFD||0)<1000||left<3000||GF.size>=GFMAX||mine>=GFPER||Math.hypot((ws.px||0)-x,(ws.py||0)-y)>250){snd(ws,{t:'fdn',i,left});return}
+      ws.lastFD=t;const f={id:gfid++,i,x,y,z:ws.z,exp:t+left,o:ws.id};GF.set(f.id,f);bcast({t:'fa',f:gfPub(f,t)})}
+    else if(m.t==='fp'){if(t-(ws.lastFP||0)<300)return;ws.lastFP=t;const id=m.id|0,f=GF.get(id);   // nhặt trái: ai tới trước được
+      if(!f||f.exp<=t){if(f)GF.delete(id);snd(ws,{t:'fx',id});return}
+      if(f.z!==ws.z||Math.hypot((ws.px||0)-f.x,(ws.py||0)-f.y)>140)return;
+      GF.delete(id);snd(ws,{t:'fg',id,i:f.i,left:f.exp-t});bcast({t:'fx',id},ws)}
+    else if(m.t==='adm'){if((ws.fails|0)>=5||t-(ws.lastAdm||0)<1000)return;ws.lastAdm=t;
+      if(AK&&eqKey(String(m.k||'').slice(0,64),AK)){ws.admin=1;snd(ws,{t:'adm',ok:1})}else{ws.fails=(ws.fails|0)+1;snd(ws,{t:'adm',ok:0})}}
+    else if(m.t==='igs'){if(!ws.admin)return;if(t-(ws.lastIG||0)<2000)return;ws.lastIG=t;snd(ws,{t:'igr',ok:igSummon(t)?1:0})}   // admin: triệu hồi Ichigo
     else if(m.t==='lv'){if(DB[8]||CH||t-(LVT||0)<10000)return;LVT=t;dynStart(8);out({t:'lv',id:ws.id},ws)}
-    else if(m.t==='bo'){const ty=m.ty|0;if(ty!==3&&ty!==16)return;if(dynStart(ty))out({t:'bo',ty},ws)}
+    else if(m.t==='bo'){const ty=m.ty|0;if(ty!==3&&ty!==16&&ty!==35)return;if(ty===35&&((ws.z!=='w'&&ws.z!=='sky')||Math.hypot((ws.px||0)-DYN[35].x,(ws.py||0)-DYN[35].y)>1600))return;if(dynStart(ty))out({t:'bo',ty},ws)}
     else if(m.t==='cs'){if(CH){if(chAge()<10&&!(ws.key&&CH.opened.has(ws.key)))ws.send(JSON.stringify({t:'cs',tier:CH.tier,age:chAge()}));return}
       if(t-LVDIED>30000)return;CH={tier:sn(m.tier,0,2),born:t,opened:new Set()};out({t:'cs',tier:CH.tier,age:0},ws)}
     else if(m.t==='co'){if(!CH)return;CH.opened.add(ws.key||('id'+ws.id));out({t:'co',id:ws.id},ws)}
     else if(m.t==='sk'){if(!okKey(m.k))return;ws.key=m.k;const r=SAVES[m.k];ws.send(JSON.stringify({t:'sg',ver:r?r.ver:0,d:r?r.d:null}));if(CH&&!CH.opened.has(m.k))ws.send(JSON.stringify({t:'cs',tier:CH.tier,age:chAge()}))}
     else if(m.t==='sp'){if(!ws.key||t-(ws.lastSP||0)<2000)return;ws.lastSP=t;
-      const d=typeof m.d==='string'?m.d:'';if(!d||d.length>200000)return;try{JSON.parse(d)}catch(e){return}
+      let d=typeof m.d==='string'?m.d:'';if(!d||d.length>200000)return;if(ws.admin){try{JSON.parse(d)}catch(e){return}}else{d=cleanSave(d);if(!d)return}
       const r=SAVES[ws.key];
       if(!r&&Object.keys(SAVES).length>=20000)return;
       if(r&&!m.force&&(m.base|0)!==r.ver){ws.send(JSON.stringify({t:'sg',ver:r.ver,d:r.d}));return}   // máy khác đã lưu bản mới hơn → để client tự quyết
       const ver=(r?r.ver:0)+1;SAVES[ws.key]={ver,d,at:t};svDirty=1;ws.send(JSON.stringify({t:'sa',ver}))}
-    else if(m.t==='gv'){if(t-(ws.lastG||0)<500)return;ws.lastG=t;const p=byName(m.to),k=String(m.k||'');
+    else if(m.t==='gv'){if(!ws.admin)return;if(t-(ws.lastG||0)<500)return;ws.lastG=t;const p=byName(m.to),k=String(m.k||'');
       if(!p||!['beli','gem','fruit','melee','sword'].includes(k)){snd(ws,{t:'gr',ok:0,to:String(m.to||'').slice(0,14)});return}
       const v=(k==='beli'||k==='gem')?clamp(Math.floor(+m.v||0),1,1e9):sn(m.v,0,255);
       snd(p,{t:'gv',from:ws.n,k,v});snd(ws,{t:'gr',ok:1,to:p.n,k,v})}
